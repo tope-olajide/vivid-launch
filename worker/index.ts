@@ -1,10 +1,13 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import ffmpeg = require('fluent-ffmpeg');
 import * as dotenv from 'dotenv';
+import ffmpeg = require('fluent-ffmpeg');
 import { generateTTS } from './tts';
-import fetch from 'node-fetch'; // need node-fetch v2 for commonjs or native fetch if node 18+
+import { downloadFromGCS, fetchPixabayVideo, generateImagenImage } from './assets';
+
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+
+const GCP_PROJECT = process.env.GCP_PROJECT_ID!;
 
 const ffmpegStatic = require('ffmpeg-static');
 ffmpeg.setFfmpegPath(ffmpegStatic);
@@ -14,61 +17,78 @@ if (!fs.existsSync(WORK_DIR)) {
     fs.mkdirSync(WORK_DIR, { recursive: true });
 }
 
-// Ensure native fetch is available
-const fetchContent = typeof fetch === 'undefined' ? require('node-fetch') : fetch;
+
 
 /**
- * Downloads a file from a URL to local disk.
+ * Resolves an asset (from Gemini scene JSON) into a local file path
+ * ready for FFmpeg ingestion.
+ *
+ * Sources:
+ *  - uploaded_asset  → download directly from GCS using the stored URI
+ *  - stock_video     → Pixabay API (falls back to solid-color clip)
+ *  - generate_image  → Vertex AI Imagen 3 (falls back to solid-color clip)
  */
-async function downloadFile(url: string, destPath: string) {
-    const res = await fetchContent(url);
-    if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.statusText}`);
-    
-    // Convert ArrayBuffer to Buffer for fs writing
-    const arrayBuffer = await res.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    fs.writeFileSync(destPath, buffer);
-    return destPath;
-}
+async function resolveAndDownloadAsset(
+    source: string,
+    assetId?: string,
+    prompt?: string,
+    duration: number = 5,
+    gcsUri?: string,          // Direct gs:// URI injected by the orchestrator payload
+): Promise<string> {
 
-/**
- * Resolves an asset (from Gemini Scene) into a local file path ready for FFmpeg
- */
-async function resolveAndDownloadAsset(source: string, assetId?: string, prompt?: string, duration?: number): Promise<string> {
-    if (source === 'uploaded_asset' && assetId) {
-        console.log(`📡 Fetching user uploaded asset: ${assetId}`);
-        // Wait, realistically we need to query Firestore if we don't know the exact GCS path?
-        // Let's assume the frontend sends us the signed URL or we get the exact GCS path in the document.
-        // For right now, I'll bypass Firestore dependency crashes by throwing a temporary not-implemented error 
-        // until we orchestrate the real Pub/Sub payload that will provide direct Storage URIs.
-        throw new Error("Direct Firestore/GCS lookup not implemented in local standalone worker yet.");
-    } 
-    
-    if (source === 'generate_image') {
-        throw new Error("Imagen generation not implemented yet.");
+    // ── 1. User-uploaded asset ──────────────────────────────────────────────
+    if (source === 'uploaded_asset') {
+        // Prefer a direct gs:// URI passed in the payload; fall back to assetId
+        const uri = gcsUri || assetId;
+        if (!uri) throw new Error('uploaded_asset requires a gcsUri or assetId.');
+
+        const ext  = uri.includes('.mp4') ? 'mp4' : 'jpg';
+        const dest = path.join(WORK_DIR, `uploaded_${Date.now()}.${ext}`);
+        return await downloadFromGCS(uri, dest);
     }
 
+    // ── 2. Stock video (Pixabay) ────────────────────────────────────────────
     if (source === 'stock_video') {
-         throw new Error("Pixabay fetch not implemented yet.");
+        const searchPrompt = prompt || 'cinematic footage';
+        const dest = path.join(WORK_DIR, `stock_${Date.now()}.mp4`);
+        try {
+            return await fetchPixabayVideo(searchPrompt, duration, dest);
+        } catch (err: any) {
+            console.warn(`⚠️  Pixabay fallback (${err.message}). Using solid-color clip.`);
+            return await createSolidColorVideo(dest, duration, 'darkblue');
+        }
     }
 
-    throw new Error(`Unsupported source: ${source}`);
+    // ── 3. AI-generated image (Vertex AI Imagen) ────────────────────────────
+    if (source === 'generate_image') {
+        const imgPrompt = prompt || 'cinematic background';
+        const dest = path.join(WORK_DIR, `imagen_${Date.now()}.jpg`);
+        try {
+            return await generateImagenImage(imgPrompt, dest);
+        } catch (err: any) {
+            console.warn(`⚠️  Imagen fallback (${err.message}). Using solid-color clip.`);
+            return await createSolidColorVideo(dest, duration, 'black');
+        }
+    }
+
+    throw new Error(`Unsupported visual source: "${source}"`);
 }
 
+
 /**
- * Helper to create a solid color fallback video if stock/imagen fails or is stubbed
+ * Helper to create a solid color fallback video using FFmpeg directly.
  */
 function createSolidColorVideo(outputPath: string, duration: number, color: string = 'black'): Promise<string> {
     return new Promise((resolve, reject) => {
-        ffmpeg()
-            .input(`color=c=${color}:s=1920x1080`)
-            .inputFormat('lavfi')
-            .duration(duration)
-            .output(outputPath)
-            .on('end', (() => resolve(outputPath)) as any)
-            .on('error', reject)
-            .run();
+        try {
+            const ffmpegPath = require('ffmpeg-static');
+            const { execSync } = require('child_process');
+            const cmd = `"${ffmpegPath}" -y -f lavfi -i color=c=${color}:s=1920x1080 -t ${duration} -c:v libx264 -pix_fmt yuv420p "${outputPath}"`;
+            execSync(cmd, { stdio: 'inherit' });
+            resolve(outputPath);
+        } catch (e) {
+            reject(e);
+        }
     });
 }
 
@@ -85,10 +105,11 @@ async function renderScene(scene: any, index: number): Promise<string> {
 
     // 1. Resolve and download Base Visual
     const baseVisualPath = await resolveAndDownloadAsset(
-        scene.visual.base.source, 
-        scene.visual.base.asset_id, 
+        scene.visual.base.source,
+        scene.visual.base.asset_id,
         scene.visual.base.prompt,
-        scene.duration
+        scene.duration,
+        scene.visual.base.gcs_uri, // orchestrator may pass gs:// URI directly
     );
 
     // 2. Synthesize TTS
@@ -197,22 +218,30 @@ async function main() {
             const concatListContent = renderedScenes.map(file => `file '${path.basename(file)}'`).join('\n');
             fs.writeFileSync(concatListPath, concatListContent);
 
-            await new Promise((resolve, reject) => {
-                ffmpeg()
-                    .input(concatListPath)
-                    .inputOptions(['-f concat', '-safe 0'])
-                    .outputOptions('-c copy') // Fast copy since they are all identical formats
-                    .output(finalOutputPath)
-                    .on('end', () => {
-                        console.log(`✅✅ SUCCESS! Final video saved to: ${finalOutputPath}`);
-                        resolve(finalOutputPath);
-                    })
-                    .on('error', (err) => {
-                        console.error("❌ Error merging final video:", err);
-                        reject(err);
-                    })
-                    .run();
-            });
+            // Merge via execSync — reliable on all platforms
+            const ffmpegPath = require('ffmpeg-static');
+            const { execSync } = require('child_process');
+            const mergeCmd = `"${ffmpegPath}" -y -f concat -safe 0 -i "${concatListPath}" -c copy "${finalOutputPath}"`;
+            console.log('Merging command:', mergeCmd);
+            execSync(mergeCmd, { stdio: 'inherit' });
+            console.log(`✅✅ SUCCESS! Final video saved to: ${finalOutputPath}`);
+
+            // Upload to GCS if a project ID is set
+            const outputGcsPath = process.env.GCS_OUTPUT_PATH;
+            if (outputGcsPath) {
+                const { Storage } = require('@google-cloud/storage');
+                const storage = new Storage({
+                    projectId: GCP_PROJECT,
+                    credentials: {
+                        client_email: process.env.GCP_CLIENT_EMAIL!,
+                        private_key: (process.env.GCP_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+                    },
+                });
+                const destBucket = process.env.GCS_BUCKET_NAME!;
+                const destObj    = `${outputGcsPath}/final_output.mp4`;
+                await storage.bucket(destBucket).upload(finalOutputPath, { destination: destObj });
+                console.log(`☁️  Uploaded to gs://${destBucket}/${destObj}`);
+            }
         }
 
     } catch (err) {

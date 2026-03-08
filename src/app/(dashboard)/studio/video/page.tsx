@@ -6,7 +6,7 @@ import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Video, Sparkles, Play, Settings2, Layers, AlignLeft, Music, Activity, Image as ImageIcon } from "lucide-react";
+import { Video, Sparkles, Play, Settings2, Layers, AlignLeft, Music, Activity, Image as ImageIcon, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +51,8 @@ function VideoStudioContent() {
     const searchParams = useSearchParams();
     const projectId = searchParams.get("projectId");
     const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
+    const [isRendering, setIsRendering] = useState(false);
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
     const { object, submit, isLoading, error } = useObject({
         api: "/api/studio/generate",
@@ -74,7 +76,39 @@ function VideoStudioContent() {
             toast.error("No project selected.");
             return;
         }
+        setVideoUrl(null); // reset previous video
         submit({ projectId, prompt: "Generate a high-impact promotional video storyboard." });
+    };
+
+    const handleRender = async () => {
+        if (!projectId || !object?.scenes?.length) {
+            toast.error("Generate a storyboard first.");
+            return;
+        }
+        try {
+            setIsRendering(true);
+            toast.info("Rendering video... this may take a few minutes.");
+
+            const res = await fetch("/api/studio/render", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ projectId, scenes: object.scenes }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Render failed");
+
+            if (data.outputGcsPath) {
+                setVideoUrl(data.outputGcsPath);
+                toast.success("Video rendered! Check your GCS bucket.");
+            } else {
+                toast.success("Video render queued successfully.");
+            }
+        } catch (err: any) {
+            toast.error(err.message || "Render failed.");
+        } finally {
+            setIsRendering(false);
+        }
     };
 
     const scenes = object?.scenes || [];
@@ -120,6 +154,24 @@ function VideoStudioContent() {
                                 <Sparkles className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                                 {isLoading ? "Generating..." : "Generate Storyboard"}
                             </Button>
+
+                            {/* Render button — enabled once scenes are ready */}
+                            <Button
+                                variant="outline"
+                                className="w-full border-violet-500/40 hover:bg-violet-500/10 text-violet-400"
+                                onClick={handleRender}
+                                disabled={isRendering || isLoading || !object?.scenes?.length}
+                            >
+                                <Video className={`mr-2 h-4 w-4 ${isRendering ? 'animate-pulse' : ''}`} />
+                                {isRendering ? "Rendering video..." : "Render Video"}
+                            </Button>
+
+                            {videoUrl && (
+                                <p className="text-xs text-muted-foreground break-all">
+                                    <Download className="inline h-3 w-3 mr-1" />
+                                    Output: <span className="text-violet-400">{videoUrl}</span>
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
 
