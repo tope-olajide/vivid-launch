@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
     Globe,
@@ -105,11 +107,14 @@ export default function NewProjectPage() {
     const [formality, setFormality] = useState([60]);
     const [emojiUsage, setEmojiUsage] = useState([40]);
     const [audienceLevel, setAudienceLevel] = useState("intermediate");
-    const [uploadedFiles, setUploadedFiles] = useState<{ name: string; type: string }[]>([]);
+    const [uploadedFiles, setUploadedFiles] = useState<{ file: File; name: string; type: string }[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files).map((f) => ({
+                file: f,
                 name: f.name,
                 type: f.type.startsWith("image") ? "image" : f.type.startsWith("video") ? "video" : "file",
             }));
@@ -119,6 +124,93 @@ export default function NewProjectPage() {
 
     const removeFile = (index: number) => {
         setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSubmit = async () => {
+        if (!projectName || !description) {
+            toast.error("Please fill in project name and description");
+            return;
+        }
+
+        setIsSubmitting(true);
+        const loadingToast = toast.loading("Creating project...");
+
+        try {
+            // 1. Create Project in Firestore
+            const projectResponse = await fetch("/api/projects", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: projectName,
+                    description,
+                    tagline,
+                    targetAudience,
+                    websiteUrl,
+                    templateId: selectedTemplate,
+                    brandVoice: {
+                        tone: tone[0],
+                        humor: humor[0],
+                        formality: formality[0],
+                        emojiUsage: emojiUsage[0],
+                        audienceLevel
+                    }
+                })
+            });
+
+            if (!projectResponse.ok) throw new Error("Failed to create project");
+            const { projectId } = await projectResponse.json();
+
+            // 2. Upload Assets to GCS and Register in Firestore
+            for (const { file, type, name } of uploadedFiles) {
+                toast.loading(`Uploading ${name}...`, { id: loadingToast });
+
+                // Get Signed URL
+                const urlRes = await fetch("/api/upload", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        fileName: name,
+                        contentType: file.type,
+                        projectId
+                    })
+                });
+
+                if (!urlRes.ok) throw new Error(`Failed to get upload URL for ${name}`);
+                const { url, publicUrl } = await urlRes.json();
+
+                // Upload directly to GCS via PUT
+                const uploadRes = await fetch(url, {
+                    method: "PUT",
+                    headers: { "Content-Type": file.type },
+                    body: file
+                });
+
+                if (!uploadRes.ok) throw new Error(`Failed to upload ${name} to Storage`);
+
+                // Register asset in Firestore
+                const assetRes = await fetch("/api/assets", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        projectId,
+                        name,
+                        type,
+                        gcsUrl: publicUrl
+                    })
+                });
+
+                if (!assetRes.ok) throw new Error(`Failed to register ${name} in Firestore`);
+            }
+
+            toast.success("Project created! Redirecting to studio...", { id: loadingToast });
+            router.push(`/studio/video?projectId=${projectId}`);
+
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.message || "An error occurred", { id: loadingToast });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -143,10 +235,10 @@ export default function NewProjectPage() {
                         <button
                             onClick={() => setCurrentStep(step.id)}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${currentStep === step.id
-                                    ? "bg-primary text-primary-foreground"
-                                    : currentStep > step.id
-                                        ? "bg-primary/20 text-primary"
-                                        : "bg-muted text-muted-foreground"
+                                ? "bg-primary text-primary-foreground"
+                                : currentStep > step.id
+                                    ? "bg-primary/20 text-primary"
+                                    : "bg-muted text-muted-foreground"
                                 }`}
                         >
                             <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs bg-background/20">
@@ -178,8 +270,8 @@ export default function NewProjectPage() {
                                 key={template.id}
                                 onClick={() => setSelectedTemplate(template.id)}
                                 className={`cursor-pointer transition-all duration-200 border ${selectedTemplate === template.id
-                                        ? "ring-2 ring-primary border-primary"
-                                        : template.border
+                                    ? "ring-2 ring-primary border-primary"
+                                    : template.border
                                     } bg-gradient-to-br ${template.gradient} hover:shadow-md`}
                             >
                                 <CardContent className="p-4">
@@ -446,9 +538,13 @@ export default function NewProjectPage() {
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 ) : (
-                    <Button className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white">
+                    <Button
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white"
+                    >
                         <Sparkles className="mr-2 h-4 w-4" />
-                        Create Project & Generate
+                        {isSubmitting ? "Generating..." : "Create Project & Generate"}
                     </Button>
                 )}
             </div>
