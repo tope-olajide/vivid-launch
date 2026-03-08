@@ -1,0 +1,52 @@
+[
+  {
+    "scene_id": 1,
+    "duration": 5,
+    "transition": "glitch-in",
+    "music_style": "intense electronic",
+    "scene_emotion": "anticipation",
+    "camera_motion": "static",
+    "bpm_suggestion": 120,
+    "voiceover": {
+      "text": "Football is often built on narratives and emotion. But the numbers tell a different story.",
+      "tone": "professional",
+      "pace": "medium"
+    },
+    "text_overlay": {
+      "content": "NARRATIVES vs. DATA",
+      "animation": "glitch-in",
+      "subtitle_style": "bold athletic"
+    },
+    "visual": {
+      "base": {
+        "source": "stock_video",
+        "prompt": "Cinematic shot of a packed football stadium at night, stadium lights beaming, crowd cheering in silhouette."
+      }
+    }
+  },
+  {
+    "scene_id": 2,
+    "duration": 5,
+    "transition": "wipe-right",
+    "music_style": "driving beats",
+    "scene_emotion": "confident",
+    "camera_motion": "slow zoom-in",
+    "bpm_suggestion": 130,
+    "voiceover": {
+      "text": "Introducing Elite Sports Intelligence Engine. Unbiased football intelligence powered by raw data, not hype.",
+      "tone": "confident",
+      "pace": "medium"
+    },
+    "text_overlay": {
+      "content": "ELITE SPORTS INTELLIGENCE ENGINE",
+      "animation": "typewriter",
+      "subtitle_style": "highlight focus"
+    },
+    "visual": {
+      "base": {
+        "source": "uploaded_asset",
+        "asset_id": "rQ9oFzH1k0h1m8FzjU2q"
+      }
+    }
+  }
+]
