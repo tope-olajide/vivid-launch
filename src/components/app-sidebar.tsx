@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
     FolderPlus,
+    FolderOpen,
     Video,
     FileText,
     Share2,
@@ -30,6 +31,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const mainNav = [
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { title: "Projects", href: "/projects", icon: FolderOpen },
     { title: "New Project", href: "/projects/new", icon: FolderPlus },
 ];
 
