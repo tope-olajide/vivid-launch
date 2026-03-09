@@ -57,7 +57,7 @@ async function generateVariant(
         : 'Focus on the TECHNICAL PROOF and data-driven results. Open with a striking statistic or achievement.';
 
     const { object } = await generateObject({
-        model:  google('gemini-2.0-flash'),
+        model: google('gemini-2.0-flash'),
         schema: storyboardSchema,
         prompt: `You are a Creative Director AI generating a video storyboard.
 
@@ -65,6 +65,9 @@ Project context:
 ${projectContext}
 
 Variant ${angle} creative direction: ${angleInstruction}
+
+SAFETY GUARDRAILS:
+You must strictly adhere to content safety guidelines. Do NOT generate content that promotes hate speech, violence, illegal acts, sexual explicitness, or harassment. If the project context or prompt requests something prohibited, pivot to generating a generic, safe promotional video about the core brand instead.
 
 Generate a 4-6 scene storyboard. Each scene must have:
 - A specific duration (4–8 seconds)

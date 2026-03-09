@@ -148,7 +148,7 @@ function VideoStudioContent() {
             const res = await fetch("/api/studio/render", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ projectId, scenes: object.scenes }),
+                body: JSON.stringify({ projectId, aspectRatio, scenes: localScenes }),
             });
 
             const data = await res.json();

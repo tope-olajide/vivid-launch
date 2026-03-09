@@ -55,6 +55,8 @@ async function resolveAndDownloadAsset(
             return await fetchPixabayVideo(searchPrompt, duration, dest);
         } catch (err: any) {
             console.warn(`⚠️  Pixabay fallback (${err.message}). Using solid-color clip.`);
+            // Assuming we pass aspectRatio to resolveAndDownloadAsset if needed, 
+            // but we can default this fallback and scale it correctly in the compositor
             return await createSolidColorVideo(dest, duration, 'darkblue');
         }
     }
@@ -77,13 +79,15 @@ async function resolveAndDownloadAsset(
 
 /**
  * Helper to create a solid color fallback video using FFmpeg directly.
+ * We'll generate it at 1920x1920 so it can be cropped perfectly to ANY aspect ratio
+ * later in the compositor without letterboxing.
  */
 function createSolidColorVideo(outputPath: string, duration: number, color: string = 'black'): Promise<string> {
     return new Promise((resolve, reject) => {
         try {
             const ffmpegPath = require('ffmpeg-static');
             const { execSync } = require('child_process');
-            const cmd = `"${ffmpegPath}" -y -f lavfi -i color=c=${color}:s=1920x1080 -t ${duration} -c:v libx264 -pix_fmt yuv420p "${outputPath}"`;
+            const cmd = `"${ffmpegPath}" -y -f lavfi -i color=c=${color}:s=1920x1920 -t ${duration} -c:v libx264 -pix_fmt yuv420p "${outputPath}"`;
             execSync(cmd, { stdio: 'inherit' });
             resolve(outputPath);
         } catch (e) {
@@ -95,9 +99,9 @@ function createSolidColorVideo(outputPath: string, duration: number, color: stri
 /**
  * Renders a single scene from the Gemini-generated JSON block.
  */
-async function renderScene(scene: any, index: number): Promise<string> {
+async function renderScene(scene: any, index: number, aspectRatio: string = '16:9'): Promise<string> {
     console.log(`\n============================`);
-    console.log(`🎬 Rendering Scene ${index + 1}...`);
+    console.log(`🎬 Rendering Scene ${index + 1}... [${aspectRatio}]`);
     console.log(`============================`);
 
     const outputFileName = `scene_${index}.mp4`;
@@ -126,7 +130,11 @@ async function renderScene(scene: any, index: number): Promise<string> {
 
     return new Promise((resolve, reject) => {
         const complexFilters: string[] = [];
-        complexFilters.push(`[0:v]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,setsar=1,fps=30[v1]`);
+        
+        // Determine dynamic resolution based on aspectRatio
+        const [w, h] = aspectRatio === '9:16' ? [1080, 1920] : [1920, 1080];
+        
+        complexFilters.push(`[0:v]scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,fps=30[v1]`);
 
         const escapedText = scene.text_overlay.content.replace(/[^a-zA-Z0-9 ]/g, '');
         // Windows CMD quoting is extremely picky. 
@@ -187,20 +195,23 @@ async function main() {
     try {
         // NOTE: For local testing, we might not have a campaign ID yet if the frontend isn't saving it.
         // We will pass the raw JSON file path instead for debugging.
-        let scenesData;
+        let payload;
         
         if (campaignId.endsWith('.json')) {
             console.log(`Loading JSON payload from disk: ${campaignId}`);
-            scenesData = JSON.parse(fs.readFileSync(campaignId, 'utf-8'));
+            payload = JSON.parse(fs.readFileSync(campaignId, 'utf-8'));
         } else {
              throw new Error("Local test mode requires a .json file payload");
         }
+
+        const scenesData = Array.isArray(payload) ? payload : payload.scenes;
+        const aspectRatio = payload.aspectRatio || '16:9';
 
         const renderedScenes: string[] = [];
 
         // Render each scene sequentially
         for (let i = 0; i < scenesData.length; i++) {
-            const scenePath = await renderScene(scenesData[i], i);
+            const scenePath = await renderScene(scenesData[i], i, aspectRatio);
             renderedScenes.push(scenePath);
         }
 

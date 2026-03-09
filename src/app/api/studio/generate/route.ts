@@ -107,6 +107,9 @@ export async function POST(req: Request) {
       AVAILABLE ASSETS:
       ${JSON.stringify(assets)}
 
+      SAFETY GUARDRAILS:
+      You must strictly adhere to content safety guidelines. Do NOT generate content that promotes hate speech, violence, illegal acts, sexual explicitness, or harassment. If the project context or prompt requests something prohibited, pivot to generating a generic, safe promotional video about the core brand instead.
+
       INSTRUCTIONS:
       Generate a sequence of scene blocks for a promotional video.
       For visual.base.source, prefer 'uploaded_asset' if an appropriate asset exists in AVAILABLE ASSETS, referencing it by asset_id.
