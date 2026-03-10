@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import ffmpeg = require('fluent-ffmpeg');
 import { generateTTS } from './tts';
-import { downloadFromGCS, fetchPixabayVideo, generateImagenImage } from './assets';
+import { downloadFromGCS, generateImagenImage } from './assets';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
@@ -47,21 +47,7 @@ async function resolveAndDownloadAsset(
         return await downloadFromGCS(uri, dest);
     }
 
-    // ── 2. Stock video (Pixabay) ────────────────────────────────────────────
-    if (source === 'stock_video') {
-        const searchPrompt = prompt || 'cinematic footage';
-        const dest = path.join(WORK_DIR, `stock_${Date.now()}.mp4`);
-        try {
-            return await fetchPixabayVideo(searchPrompt, duration, dest);
-        } catch (err: any) {
-            console.warn(`⚠️  Pixabay fallback (${err.message}). Using solid-color clip.`);
-            // Assuming we pass aspectRatio to resolveAndDownloadAsset if needed, 
-            // but we can default this fallback and scale it correctly in the compositor
-            return await createSolidColorVideo(dest, duration, 'darkblue');
-        }
-    }
-
-    // ── 3. AI-generated image (Vertex AI Imagen) ────────────────────────────
+    // ── 2. AI-generated image (Vertex AI Imagen) ────────────────────────────
     if (source === 'generate_image') {
         const imgPrompt = prompt || 'cinematic background';
         const dest = path.join(WORK_DIR, `imagen_${Date.now()}.jpg`);

@@ -78,10 +78,6 @@ export default function SettingsPage() {
                                     <Label htmlFor="gemini-key">Google Gemini API Key</Label>
                                     <Input id="gemini-key" type="password" placeholder="AIza..." />
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="pixabay-key">Pixabay API Key</Label>
-                                    <Input id="pixabay-key" type="password" placeholder="Enter key..." />
-                                </div>
                             </div>
                             <Button>Save Keys</Button>
                         </CardContent>

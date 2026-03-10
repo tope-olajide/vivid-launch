@@ -26,14 +26,14 @@ const sceneBlockSchema = z.object({
         }),
         visual: z.object({
             base: z.object({
-                source: z.enum(['uploaded_asset', 'generate_image', 'stock_video']),
+                source: z.enum(['uploaded_asset', 'generate_image']),
                 asset_id: z.string().optional(),
                 prompt: z.string().optional(),
                 start_time_seconds: z.number().optional(),
                 end_time_seconds: z.number().optional()
             }),
             overlay: z.object({
-                source: z.enum(['uploaded_asset', 'generate_image', 'stock_video', 'none']),
+                source: z.enum(['uploaded_asset', 'generate_image', 'none']),
                 prompt: z.string().optional()
             }).optional()
         })
@@ -114,7 +114,7 @@ export async function POST(req: Request) {
       Generate a sequence of scene blocks for a promotional video.
       For visual.base.source, prefer 'uploaded_asset' if an appropriate asset exists in AVAILABLE ASSETS, referencing it by asset_id.
       IF the 'uploaded_asset' is a video, you MUST analyze it and provide 'start_time_seconds' and 'end_time_seconds' to extract the most exciting or relevant segment matching the scene's duration.
-      Otherwise, use 'generate_image' (provide a prompt) or 'stock_video'.
+      Otherwise, use 'generate_image' (provide a highly descriptive visual prompt for Google Imagen).
     `;
 
         // 4. Stream structured JSON using Gemini

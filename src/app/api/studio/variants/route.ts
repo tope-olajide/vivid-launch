@@ -73,8 +73,8 @@ Generate a 4-6 scene storyboard. Each scene must have:
 - A specific duration (4–8 seconds)
 - A text overlay (punchy headline, < 6 words)  
 - A voiceover script (1–3 sentences)
-- A visual source: "stock_video", "generate_image", or "uploaded_asset"
-- A visual prompt if source is stock_video or generate_image
+- A visual source: "generate_image", or "uploaded_asset"
+- A highly descriptive visual prompt if source is generate_image
 
 Return ONLY valid JSON.`,
     });
