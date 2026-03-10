@@ -1,0 +1,4 @@
+src/app/api/studio/generate/route.ts(9,8): error TS2307: Cannot find module '@/lib/agents/tools' or its corresponding type declarations.
+src/app/api/studio/generate/route.ts(10,41): error TS2307: Cannot find module '@/lib/gcp/storage' or its corresponding type declarations.
+src/app/api/studio/generate/route.ts(117,50): error TS2345: Argument of type 'any[]' is not assignable to parameter of type 'SendMessageParameters'.
+  Property 'message' is missing in type 'any[]' but required in type 'SendMessageParameters'.

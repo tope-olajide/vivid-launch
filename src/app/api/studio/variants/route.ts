@@ -17,6 +17,13 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 import { db } from '@/lib/gcp/firestore';
 
+import { GoogleGenAI } from '@google/genai';
+import {
+    getProjectContextDeclaration, getProjectContext,
+    getProjectAssetsDeclaration, getProjectAssets,
+    scrapeWebsiteDeclaration, scrapeWebsite
+} from '@/lib/agents/tools';
+
 // ── Shared scene schema ──────────────────────────────────────
 
 const sceneSchema = z.object({
@@ -95,29 +102,76 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'projectId is required.' }, { status: 400 });
         }
 
-        // Fetch project context from Firestore
-        let projectContext = prompt || '';
-
-        if (!projectContext) {
-            const doc = await db.collection('projects').doc(projectId).get();
-            if (doc.exists) {
-                const data = doc.data() as any;
-                projectContext = [
-                    `Project: ${data.name || 'Untitled'}`,
-                    `Industry: ${data.industry || 'General'}`,
-                    `Brand Voice: ${data.brandVoice?.tone || 'professional'}`,
-                    `Target Audience: ${data.audience || 'general audience'}`,
-                    `Campaign Goal: ${data.goal || 'brand awareness'}`,
-                ].join('\n');
+        // ─────────────────────────────────────────────────────────────
+        // 1. Core Agent Intelligence Loop (Google ADK + Tools)
+        // ─────────────────────────────────────────────────────────────
+        
+        const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY });
+        
+        console.log(`[Variants API] Initiating context gathering loop for project ${projectId}...`);
+        
+        const chat = ai.chats.create({
+            model: 'gemini-2.0-flash',
+            config: {
+                systemInstruction: `You are the Creative Director Researcher for VividLaunch. You compile project briefs so a video storyboard can be generated. 
+You have tools to fetch project context, assets, and scrape websites. 
+INSTRUCTIONS:
+1. Always call get_project_context with the given projectId.
+2. Always call get_project_assets with the given projectId.
+3. IF the project context includes a websiteUrl, you MUST call scrape_website to extract the landing page copy.
+4. After you have gathered all information, output a comprehensive "Creative Brief" containing the parsed details, brand voice, and a list of available assets.`,
+                tools: [{
+                    functionDeclarations: [
+                        getProjectContextDeclaration,
+                        getProjectAssetsDeclaration,
+                        scrapeWebsiteDeclaration
+                    ]
+                }]
             }
+        });
+
+        let adkResponse = await chat.sendMessage({ 
+            message: `Please gather context for projectId: ${projectId}. User prompt: ${prompt || "Generate a high-impact promotional video storyboard."}` 
+        });
+
+        let loopCount = 0;
+        while (adkResponse.functionCalls && adkResponse.functionCalls.length > 0 && loopCount < 5) {
+            const functionResponses = [];
+            
+            for (const call of adkResponse.functionCalls) {
+                const name = call.name;
+                const args = call.args as any;
+                
+                let resultData;
+                if (name === 'get_project_context') {
+                    resultData = await getProjectContext(args.projectId);
+                } else if (name === 'get_project_assets') {
+                    resultData = await getProjectAssets(args.projectId);
+                } else if (name === 'scrape_website') {
+                    resultData = await scrapeWebsite(args.url);
+                } else {
+                    resultData = { error: 'Unknown function' };
+                }
+                
+                functionResponses.push({
+                    functionResponse: {
+                        name: name as string,
+                        response: resultData
+                    }
+                });
+            }
+            
+            adkResponse = await chat.sendMessage({ message: functionResponses });
+            loopCount++;
         }
 
-        console.log(`[Variants API] Generating A/B for project ${projectId}`);
+        const creativeBrief = adkResponse.text || "No context gathered.";
+        console.log(`[Variants API] Compilation complete. Final Brief length: ${creativeBrief.length} chars. Generating A/B...`);
 
-        // Generate both variants in parallel
+        // Generate both variants in parallel using Vercel AI SDK
         const [variantA, variantB] = await Promise.all([
-            generateVariant(projectContext, 'A'),
-            generateVariant(projectContext, 'B'),
+            generateVariant(creativeBrief, 'A'),
+            generateVariant(creativeBrief, 'B'),
         ]);
 
         return NextResponse.json({

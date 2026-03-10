@@ -1,10 +1,14 @@
 import { streamObject } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
-import { db, COLLECTIONS } from '@/lib/gcp/firestore';
+import { GoogleGenAI } from '@google/genai';
+import {
+    getProjectContextDeclaration, getProjectContext,
+    getProjectAssetsDeclaration, getProjectAssets,
+    scrapeWebsiteDeclaration, scrapeWebsite
+} from '@/lib/agents/tools';
 import { generateV4ReadSignedUrl } from '@/lib/gcp/storage';
 
-// Define the expected output structure from Gemini
 const sceneBlockSchema = z.object({
     scenes: z.array(z.object({
         scene_id: z.number(),
@@ -48,76 +52,118 @@ export async function POST(req: Request) {
             return new Response("Missing projectId", { status: 400 });
         }
 
-        // 1. Fetch Project and Brand Voice
-        const projectDoc = await db.collection(COLLECTIONS.PROJECTS).doc(projectId).get();
-
-        if (!projectDoc.exists) {
-            return new Response("Project not found", { status: 404 });
-        }
-
-        const projectData = projectDoc.data()!;
-        const brandVoice = projectData.brandVoice || {};
-
-        // 2. Fetch Project Assets
-        const assetsSnapshot = await db.collection(COLLECTIONS.ASSETS).where('projectId', '==', projectId).get();
-        const assets = assetsSnapshot.docs.map(doc => {
-            const data = doc.data() as { gcsUrl?: string; type?: string; [key: string]: any };
-            return {
-                asset_id: doc.id,
-                ...data
-            };
+        // ─────────────────────────────────────────────────────────────
+        // 1. Core Agent Intelligence Loop (Google ADK + Tools)
+        // ─────────────────────────────────────────────────────────────
+        
+        // Initialize the ADK client
+        const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY });
+        
+        console.log(`[Agent] Initiating context gathering loop for project ${projectId}...`);
+        
+        // Let the agent use tools to fetch context autonomously
+        const chat = ai.chats.create({
+            model: 'gemini-2.0-flash',
+            config: {
+                systemInstruction: `You are the Creative Director Researcher for VividLaunch. You compile project briefs so a video storyboard can be generated. 
+You have tools to fetch project context, assets, and scrape websites. 
+INSTRUCTIONS:
+1. Always call get_project_context with the given projectId.
+2. Always call get_project_assets with the given projectId.
+3. IF the project context includes a websiteUrl, you MUST call scrape_website to extract the landing page copy.
+4. After you have gathered all information, output a comprehensive "Creative Brief" containing the parsed details, brand voice, and a list of available assets.`,
+                tools: [{
+                    functionDeclarations: [
+                        getProjectContextDeclaration,
+                        getProjectAssetsDeclaration,
+                        scrapeWebsiteDeclaration
+                    ]
+                }]
+            }
         });
 
-        // Filter and prepare actual media files to send to Gemini
-        const mediaMessages: any[] = [];
-        for (const asset of assets) {
-            if (asset.gcsUrl) {
-               // Generate a temporary signed read URL so Vercel AI SDK can download the private bucket asset
-               const signedUrl = await generateV4ReadSignedUrl(asset.gcsUrl);
+        let adkResponse = await chat.sendMessage({ 
+            message: `Please gather context for projectId: ${projectId}. User prompt: ${prompt || "Generate a high-impact promotional video storyboard."}` 
+        });
 
-               // We skip 'video' types for now because downloading and passing 
-               // a 4-minute video buffer causes Next.js serverless functions to time out.
-               // Gemini still knows about the video from the stringified assets array in the prompt.
-               if (asset.type === 'image') {
-                   mediaMessages.push({
-                       type: 'image',
-                       image: signedUrl, // Must be string (URL)
-                   });
-               }
+        // Autonomous Tool Execution Loop
+        let loopCount = 0;
+        while (adkResponse.functionCalls && adkResponse.functionCalls.length > 0 && loopCount < 5) {
+            const functionResponses = [];
+            
+            for (const call of adkResponse.functionCalls) {
+                const name = call.name;
+                const args = call.args as any;
+                
+                console.log(`[Agent] Executing tool: ${name}`, args);
+                
+                let resultData;
+                if (name === 'get_project_context') {
+                    resultData = await getProjectContext(args.projectId);
+                } else if (name === 'get_project_assets') {
+                    resultData = await getProjectAssets(args.projectId);
+                } else if (name === 'scrape_website') {
+                    resultData = await scrapeWebsite(args.url);
+                } else {
+                    resultData = { error: 'Unknown function' };
+                }
+                
+                functionResponses.push({
+                    functionResponse: {
+                        name: name as string,
+                        response: resultData
+                    }
+                });
+            }
+            
+            adkResponse = await chat.sendMessage({ message: functionResponses });
+            loopCount++;
+        }
+
+        const creativeBrief = adkResponse.text || "No context gathered.";
+        console.log(`[Agent] Compilation complete. Final Brief length: ${creativeBrief.length} chars.`);
+
+        // ─────────────────────────────────────────────────────────────
+        // 2. Prepare Media for Gemini Structured Generative Pass
+        // ─────────────────────────────────────────────────────────────
+        
+        // Re-fetch assets manually just to get GCS URLs for the Vercel AI SDK passing 
+        // (Since the ADK loop returns text summaries, we still need the raw image buffers for the vision model)
+        const rawAssets = await getProjectAssets(projectId);
+        const mediaMessages: any[] = [];
+        
+        if (Array.isArray(rawAssets.assets)) {
+            for (const asset of rawAssets.assets) {
+                if (asset.gcsUrl && asset.type === 'image') {
+                    const signedUrl = await generateV4ReadSignedUrl(asset.gcsUrl);
+                    mediaMessages.push({
+                        type: 'image',
+                        image: signedUrl,
+                    });
+                }
             }
         }
 
-        // 3. Construct System Prompt
+        // ─────────────────────────────────────────────────────────────
+        // 3. Final JSON Stream Generation
+        // ─────────────────────────────────────────────────────────────
+
         const systemPrompt = `
-      You are the Creative Director for VividLaunch. You generate high-converting promotional campaigns.
+      You are the Creative Director Gen-Agent for VividLaunch.
       
-      PROJECT Details:
-      Name: ${projectData.name}
-      Tagline: ${projectData.tagline}
-      Description: ${projectData.description}
-      Target Audience: ${projectData.targetAudience}
-
-      BRAND VOICE:
-      Tone (0=Safe, 100=Bold): ${brandVoice.tone || 50}
-      Humor (0=Serious, 100=Playful): ${brandVoice.humor || 30}
-      Formality (0=Casual, 100=Professional): ${brandVoice.formality || 60}
-      Emoji Usage: ${brandVoice.emojiUsage || 40}
-      Audience Level: ${brandVoice.audienceLevel || "intermediate"}
-
-      AVAILABLE ASSETS:
-      ${JSON.stringify(assets)}
+      CREATIVE BRIEF (Compiled by ADK Researcher):
+      ${creativeBrief}
 
       SAFETY GUARDRAILS:
-      You must strictly adhere to content safety guidelines. Do NOT generate content that promotes hate speech, violence, illegal acts, sexual explicitness, or harassment. If the project context or prompt requests something prohibited, pivot to generating a generic, safe promotional video about the core brand instead.
+      Do NOT generate content that promotes hate speech, violence, illegal acts, sexual explicitness, or harassment. If the project context requests something prohibited, pivot to generating a generic, safe promotional video.
 
       INSTRUCTIONS:
       Generate a sequence of scene blocks for a promotional video.
-      For visual.base.source, prefer 'uploaded_asset' if an appropriate asset exists in AVAILABLE ASSETS, referencing it by asset_id.
-      IF the 'uploaded_asset' is a video, you MUST analyze it and provide 'start_time_seconds' and 'end_time_seconds' to extract the most exciting or relevant segment matching the scene's duration.
+      For visual.base.source, prefer 'uploaded_asset' if an appropriate asset exists in the brief, referencing it by asset_id.
+      IF the 'uploaded_asset' is a video, estimate 'start_time_seconds' and 'end_time_seconds'.
       Otherwise, use 'generate_image' (provide a highly descriptive visual prompt for Google Imagen).
     `;
 
-        // 4. Stream structured JSON using Gemini
         const result = await streamObject({
             model: google('gemini-3-flash-preview'),
             schema: sceneBlockSchema,
@@ -127,7 +173,7 @@ export async function POST(req: Request) {
                      role: 'user',
                      content: [
                          { type: 'text', text: prompt || "Generate a high-impact promotional video storyboard from these assets." },
-                         ...mediaMessages // Inject the actual video/image files
+                         ...mediaMessages
                      ]
                  }
             ]
