@@ -6,10 +6,11 @@ import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Video, Sparkles, Play, Settings2, Layers, AlignLeft, Music, Activity, Image as ImageIcon, Download } from "lucide-react";
+import { Video, Sparkles, Play, Settings2, Layers, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { EditableSceneBlock, type SceneData } from "@/components/studio/EditableSceneBlock";
 
 // Schema must exactly match the backend to parse the stream
 const sceneBlockSchema = z.object({
@@ -53,6 +54,8 @@ function VideoStudioContent() {
     const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
     const [isRendering, setIsRendering] = useState(false);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    const [localScenes, setLocalScenes] = useState<SceneData[]>([]);
+    const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
 
     const { object, submit, isLoading, error } = useObject({
         api: "/api/studio/generate",
@@ -72,12 +75,65 @@ function VideoStudioContent() {
     });
 
     const handleGenerate = () => {
-        if (!projectId) {
-            toast.error("No project selected.");
-            return;
-        }
-        setVideoUrl(null); // reset previous video
+        if (!projectId) { toast.error("No project selected."); return; }
+        setVideoUrl(null);
+        setLocalScenes([]);
         submit({ projectId, prompt: "Generate a high-impact promotional video storyboard." });
+    };
+
+    // Sync streaming output → local editable state once generation settles
+    useEffect(() => {
+        if (object?.scenes?.length) {
+            setLocalScenes(object.scenes as SceneData[]);
+        }
+    }, [object?.scenes]);
+
+    // ── Scene Handlers ──────────────────────────────────────────
+    const handleSceneChange = (idx: number, updated: SceneData) => {
+        setLocalScenes((prev) => prev.map((s, i) => (i === idx ? updated : s)));
+    };
+
+    const handleSceneDelete = (idx: number) => {
+        setLocalScenes((prev) => prev.filter((_, i) => i !== idx));
+        toast.success("Scene removed.");
+    };
+
+    const handleMoveUp = (idx: number) => {
+        if (idx === 0) return;
+        setLocalScenes((prev) => {
+            const next = [...prev];
+            [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+            return next;
+        });
+    };
+
+    const handleMoveDown = (idx: number) => {
+        setLocalScenes((prev) => {
+            if (idx >= prev.length - 1) return prev;
+            const next = [...prev];
+            [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+            return next;
+        });
+    };
+
+    const handleRegenerate = async (idx: number, scene: SceneData) => {
+        setRegeneratingIdx(idx);
+        try {
+            const res = await fetch("/api/studio/variants", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ projectId, prompt: `Regenerate only scene ${idx + 1}: ${scene.text_overlay?.content}` }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            const newScene: SceneData = data.variantA?.[0] || scene;
+            setLocalScenes((prev) => prev.map((s, i) => (i === idx ? { ...newScene, scene_id: scene.scene_id } : s)));
+            toast.success(`Scene ${idx + 1} regenerated!`);
+        } catch (err: any) {
+            toast.error(err.message);
+        } finally {
+            setRegeneratingIdx(null);
+        }
     };
 
     const handleRender = async () => {
@@ -92,7 +148,7 @@ function VideoStudioContent() {
             const res = await fetch("/api/studio/render", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ projectId, scenes: object.scenes }),
+                body: JSON.stringify({ projectId, aspectRatio, scenes: localScenes }),
             });
 
             const data = await res.json();
@@ -111,7 +167,7 @@ function VideoStudioContent() {
         }
     };
 
-    const scenes = object?.scenes || [];
+    const scenes = localScenes;
 
     return (
         <motion.div
@@ -184,7 +240,7 @@ function VideoStudioContent() {
                             <p className="text-xs text-muted-foreground">
                                 Scene blocks will appear here after generation. Edit text, swap assets, or regenerate individual scenes.
                             </p>
-                            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 pb-10">
+                            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1 pb-10">
                                 <AnimatePresence>
                                     {scenes.length === 0 && !isLoading && (
                                         <div className="h-48 rounded-lg border border-dashed border-border/50 flex flex-col items-center justify-center text-center p-4">
@@ -193,56 +249,19 @@ function VideoStudioContent() {
                                         </div>
                                     )}
                                     {scenes.map((scene, i) => (
-                                        <motion.div
+                                        <EditableSceneBlock
                                             key={i}
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="p-4 rounded-lg bg-black/5 dark:bg-white/5 border border-border/50 space-y-3 relative overflow-hidden group"
-                                        >
-                                            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-violet-500 to-fuchsia-500 opacity-50 group-hover:opacity-100 transition-opacity" />
-                                            <div className="flex justify-between items-start">
-                                                <Badge variant="outline">Scene {scene?.scene_id || i + 1}</Badge>
-                                                <span className="text-xs text-muted-foreground">{scene?.duration}s • {scene?.transition}</span>
-                                            </div>
-
-                                            {scene?.text_overlay?.content && (
-                                                <div className="flex gap-2 text-sm">
-                                                    <AlignLeft className="h-4 w-4 text-violet-400 mt-0.5" />
-                                                    <div>
-                                                        <span className="font-semibold dark:text-gray-200">Text:</span> <span className="opacity-90">{scene.text_overlay.content}</span>
-                                                        <div className="text-[10px] text-muted-foreground">Animation: {scene.text_overlay.animation}</div>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {scene?.voiceover?.text && (
-                                                <div className="flex gap-2 text-sm">
-                                                    <Music className="h-4 w-4 text-fuchsia-400 mt-0.5" />
-                                                    <div>
-                                                        <span className="font-semibold dark:text-gray-200">VO:</span> <span className="italic opacity-90">"{scene.voiceover.text}"</span>
-                                                        <div className="text-[10px] text-muted-foreground">Tone: {scene.voiceover.tone}</div>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {scene?.visual?.base && (
-                                                <div className="flex gap-2 text-sm">
-                                                    <ImageIcon className="h-4 w-4 text-blue-400 mt-0.5" />
-                                                    <div>
-                                                        <span className="font-semibold dark:text-gray-200">Visual:</span>
-                                                        <div className="text-xs opacity-90 flex items-center gap-2">
-                                                            <span>Source: <Badge variant="secondary" className="text-[10px] py-0">{scene.visual.base.source}</Badge></span>
-                                                            {scene.visual.base.start_time_seconds !== undefined && scene.visual.base.end_time_seconds !== undefined && (
-                                                                <Badge variant="outline" className="text-[10px] py-0 border-blue-500/30 text-blue-500">
-                                                                    ✂️ {scene.visual.base.start_time_seconds}s - {scene.visual.base.end_time_seconds}s
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                        {scene.visual.base.prompt && <div className="text-[10px] text-muted-foreground mt-1">Prompt: {scene.visual.base.prompt}</div>}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </motion.div>
+                                            scene={scene}
+                                            index={i}
+                                            isRegenerating={regeneratingIdx === i}
+                                            onChange={handleSceneChange}
+                                            onRegenerate={handleRegenerate}
+                                            onDelete={handleSceneDelete}
+                                            onMoveUp={handleMoveUp}
+                                            onMoveDown={handleMoveDown}
+                                            isFirst={i === 0}
+                                            isLast={i === scenes.length - 1}
+                                        />
                                     ))}
                                     {isLoading && (
                                         <motion.div

@@ -25,7 +25,7 @@ const WORKER_SCRIPT = path.join(WORKER_DIR, 'index.js');
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { projectId, scenes } = body as { projectId: string; scenes: any[] };
+        const { projectId, scenes, aspectRatio = '16:9' } = body as { projectId: string; scenes: any[]; aspectRatio?: string };
 
         if (!projectId || !Array.isArray(scenes) || scenes.length === 0) {
             return NextResponse.json(
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
         // Write scenes to a temporary JSON payload file
         const payloadPath = path.join(os.tmpdir(), `vl_render_${projectId}_${Date.now()}.json`);
-        fs.writeFileSync(payloadPath, JSON.stringify(scenes, null, 2));
+        fs.writeFileSync(payloadPath, JSON.stringify({ scenes, aspectRatio }, null, 2));
 
         console.log(`[Render API] Dispatching worker for project ${projectId}`);
         console.log(`[Render API] Payload: ${payloadPath}`);

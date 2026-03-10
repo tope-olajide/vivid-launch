@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
     FolderPlus,
+    FolderOpen,
     Video,
     FileText,
     Share2,
@@ -12,6 +13,7 @@ import {
     Settings,
     Zap,
     Sparkles,
+    GitCompareArrows,
 } from "lucide-react";
 import {
     Sidebar,
@@ -29,12 +31,14 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const mainNav = [
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { title: "Projects", href: "/projects", icon: FolderOpen },
     { title: "New Project", href: "/projects/new", icon: FolderPlus },
 ];
 
 const createNav = [
     { title: "Video Studio", href: "/studio/video", icon: Video },
     { title: "Blog Engine", href: "/studio/blog", icon: FileText },
+    { title: "A/B Variants", href: "/studio/variants", icon: GitCompareArrows },
     { title: "Live Mode", href: "/studio/live", icon: Zap },
 ];
 

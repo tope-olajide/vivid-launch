@@ -19,7 +19,6 @@ const fetch = require('node-fetch');
 // ──────────────────────────────────────────────
 const GCS_BUCKET  = process.env.GCS_BUCKET_NAME!;
 const GCP_PROJECT = process.env.GCP_PROJECT_ID!;
-const PIXABAY_KEY = process.env.PIXABAY_API_KEY!;
 
 // ──────────────────────────────────────────────
 // Helpers
@@ -76,52 +75,7 @@ export async function downloadFromGCS(gcsUri: string, destPath: string): Promise
 }
 
 // ──────────────────────────────────────────────
-// 2. Pixabay — Stock Video
-// ──────────────────────────────────────────────
-
-interface PixabayVideoHit {
-    videos: { large: { url: string }; medium: { url: string }; small: { url: string } };
-    duration: number;
-    tags: string;
-}
-
-/**
- * Searches Pixabay for a stock video matching `prompt` and downloads the
- * best-fit clip (≥ requested duration) to `destPath`.
- */
-export async function fetchPixabayVideo(prompt: string, durationSecs: number, destPath: string): Promise<string> {
-    if (!PIXABAY_KEY) throw new Error('PIXABAY_API_KEY is not set in environment.');
-
-    const q  = encodeURIComponent(prompt.slice(0, 100));
-    const url = `https://pixabay.com/api/videos/?key=${PIXABAY_KEY}&q=${q}&video_type=film&per_page=10&min_width=1280`;
-
-    console.log(`🎥 Searching Pixabay for: "${prompt}"`);
-    const res  = await fetch(url);
-    if (!res.ok) throw new Error(`Pixabay API error: ${res.status}`);
-
-    const data = await res.json() as { hits: PixabayVideoHit[] };
-
-    if (!data.hits || data.hits.length === 0) {
-        throw new Error(`No Pixabay results for: "${prompt}"`);
-    }
-
-    // Prefer clips whose duration is at least as long as the scene
-    const sorted = data.hits.sort((a: PixabayVideoHit, b: PixabayVideoHit) => {
-        const aOk = a.duration >= durationSecs ? 1 : 0;
-        const bOk = b.duration >= durationSecs ? 1 : 0;
-        return bOk - aOk;
-    });
-
-    const best = sorted[0];
-    const videoUrl = best.videos.large?.url || best.videos.medium?.url || best.videos.small?.url;
-    if (!videoUrl) throw new Error('Pixabay returned no downloadable video URL.');
-
-    console.log(`   ✅ Found clip (${best.duration}s): "${best.tags.split(',')[0].trim()}" → ${videoUrl}`);
-    return await writeStream(videoUrl, destPath);
-}
-
-// ──────────────────────────────────────────────
-// 3. Vertex AI Imagen — Generated Images
+// 2. Vertex AI Imagen — Generated Images
 // ──────────────────────────────────────────────
 
 /**
