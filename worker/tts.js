@@ -34,16 +34,40 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateTTS = generateTTS;
-const child_process_1 = require("child_process");
-const path = __importStar(require("path"));
+const textToSpeech = __importStar(require("@google-cloud/text-to-speech"));
+let client = null;
+function getClient() {
+    if (!client) {
+        client = new textToSpeech.TextToSpeechClient({
+            projectId: process.env.GCP_PROJECT_ID,
+            credentials: {
+                client_email: process.env.GCP_CLIENT_EMAIL,
+                private_key: (process.env.GCP_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+            }
+        });
+    }
+    return client;
+}
+/**
+ * Maps our semantic tones to specific GCP voices.
+ */
+const VOICE_MAP = {
+    'professional': { languageCode: 'en-US', name: 'en-US-Journey-D' },
+    'energetic': { languageCode: 'en-US', name: 'en-US-Journey-F' },
+    'serious': { languageCode: 'en-GB', name: 'en-GB-News-J' },
+    'casual': { languageCode: 'en-US', name: 'en-US-Casual-K' }
+};
 async function generateTTS(text, tone) {
-    console.log(`[STUB] Synthesizing Voiceover: "${text}" with tone: "${tone}"`);
-    // Create a real 3-second silent MP3 using FFmpeg
-    // We return the buffer
-    const tf = path.join(__dirname, `stub_${Date.now()}.mp3`);
-    (0, child_process_1.execSync)(`"${require('ffmpeg-static')}" -f lavfi -i anullsrc=r=44100:cl=mono -t 3 -q:a 9 -acodec libmp3lame "${tf}"`);
-    const fs = require('fs');
-    const buff = fs.readFileSync(tf);
-    fs.unlinkSync(tf);
-    return buff;
+    const voiceSettings = VOICE_MAP[tone] || VOICE_MAP['professional'];
+    const request = {
+        input: { text: text },
+        voice: voiceSettings,
+        audioConfig: { audioEncoding: 'MP3' },
+    };
+    const ttsClient = getClient();
+    const [response] = await ttsClient.synthesizeSpeech(request);
+    if (!response.audioContent) {
+        throw new Error('TTS Failed to return audio content');
+    }
+    return response.audioContent;
 }

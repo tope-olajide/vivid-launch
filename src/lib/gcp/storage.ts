@@ -60,13 +60,23 @@ export async function generateV4UploadSignedUrl(
  * This lets the server-side AI SDK fetch private bucket files temporarily.
  */
 export async function generateV4ReadSignedUrl(gcsUrl: string) {
-    // Extract the filePath from the public URL
-    const baseUrl = `https://storage.googleapis.com/${BUCKET_NAME}/`;
-    if (!gcsUrl.startsWith(baseUrl)) {
-        return gcsUrl; // Fallback if it's already a different URL format
+    if (!gcsUrl) return "";
+
+    let bucketName = BUCKET_NAME;
+    let filePath = "";
+
+    if (gcsUrl.startsWith("gs://")) {
+        const parts = gcsUrl.replace("gs://", "").split("/");
+        bucketName = parts.shift() || BUCKET_NAME;
+        filePath = parts.join("/");
+    } else {
+        // Extract the filePath from the public URL
+        const baseUrl = `https://storage.googleapis.com/${BUCKET_NAME}/`;
+        if (!gcsUrl.startsWith(baseUrl)) {
+            return gcsUrl; // Fallback if it's already a different URL format
+        }
+        filePath = gcsUrl.replace(baseUrl, "");
     }
-    
-    const filePath = gcsUrl.replace(baseUrl, "");
 
     const options = {
         version: "v4" as const,
@@ -75,7 +85,7 @@ export async function generateV4ReadSignedUrl(gcsUrl: string) {
     };
 
     const [url] = await storage
-        .bucket(BUCKET_NAME)
+        .bucket(bucketName)
         .file(filePath)
         .getSignedUrl(options);
 

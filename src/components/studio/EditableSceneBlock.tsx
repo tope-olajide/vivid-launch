@@ -50,7 +50,15 @@ export interface SceneData {
     camera_motion?: string;
     bpm_suggestion?: number;
     voiceover: { text: string; tone: string; pace?: string };
-    text_overlay: { content: string; animation: string; subtitle_style?: string };
+    text_overlay: { 
+        content: string; 
+        animation: string; 
+        subtitle_settings?: {
+            enabled: boolean;
+            position: 'top' | 'middle' | 'bottom';
+            color: 'white' | 'yellow' | 'cyan' | 'green';
+        }
+    };
     visual: {
         base: {
             source: string;
@@ -78,9 +86,10 @@ interface Props {
 }
 
 const VOICE_TONES = ["professional", "energetic", "casual", "serious", "inspirational"];
-const VISUAL_SOURCES = ["stock_video", "uploaded_asset", "generate_image"];
+const VISUAL_SOURCES = ["uploaded_asset", "generate_image", "generate_video"];
 const TEXT_ANIMATIONS = ["fade-in", "typewriter", "slide-reveal", "glitch-in", "slide-up"];
-const TRANSITIONS = ["fade", "wipe-right", "slide-up", "dissolve", "cut"];
+const TRANSITIONS = ["fade", "wipe-right", "wipe-left", "slide-up", "dissolve", "cut"];
+const CAMERA_MOTIONS = ["zoom_in", "zoom_out", "pan_right", "pan_left", "pan_up", "pan_down"];
 
 // ── Component ────────────────────────────────────────────────
 
@@ -100,6 +109,19 @@ export function EditableSceneBlock({
 
     const updateTextOverlay = (field: keyof SceneData["text_overlay"], value: string) => {
         setDraft((prev) => ({ ...prev, text_overlay: { ...prev.text_overlay, [field]: value } }));
+    };
+
+    const updateSubtitleSettings = (field: keyof NonNullable<SceneData["text_overlay"]["subtitle_settings"]>, value: any) => {
+        setDraft((prev) => {
+            const currentSettings = prev.text_overlay.subtitle_settings || { enabled: true, position: 'middle', color: 'white' };
+            return {
+                ...prev,
+                text_overlay: {
+                    ...prev.text_overlay,
+                    subtitle_settings: { ...currentSettings, [field]: value }
+                }
+            };
+        });
     };
 
     const updateVisualBase = (field: keyof SceneData["visual"]["base"], value: string) => {
@@ -224,13 +246,13 @@ export function EditableSceneBlock({
                         {isEditing ? (
                             <div className="space-y-1.5">
                                 <Input
-                                    value={draft.text_overlay.content}
+                                    value={draft?.text_overlay?.content || ""}
                                     onChange={(e) => updateTextOverlay("content", e.target.value)}
                                     placeholder="Text overlay content"
                                     className="h-7 text-xs"
                                 />
                                 <Select
-                                    value={draft.text_overlay.animation}
+                                    value={draft?.text_overlay?.animation || ""}
                                     onValueChange={(v) => updateTextOverlay("animation", v)}
                                 >
                                     <SelectTrigger className="h-7 text-xs">
@@ -245,9 +267,49 @@ export function EditableSceneBlock({
                             </div>
                         ) : (
                             <>
-                                <p className="text-sm font-medium leading-snug">{displayScene.text_overlay.content}</p>
-                                <p className="text-[10px] text-muted-foreground">Animation: {displayScene.text_overlay.animation}</p>
+                                <p className="text-sm font-medium leading-snug">{displayScene?.text_overlay?.content || "..."}</p>
+                                <div className="flex gap-2 text-[10px] text-muted-foreground mt-1">
+                                    <span>Anim: {displayScene?.text_overlay?.animation || "none"}</span>
+                                    {displayScene?.text_overlay?.subtitle_settings && (
+                                        <span>• Subtitles: {displayScene.text_overlay.subtitle_settings.enabled ? `${displayScene.text_overlay.subtitle_settings.color} (${displayScene.text_overlay.subtitle_settings.position})` : 'Off'}</span>
+                                    )}
+                                </div>
                             </>
+                        )}
+                        
+                        {/* Subtitle Settings (Edit Mode Only) */}
+                        {isEditing && (
+                            <div className="flex gap-2 pt-1 border-t border-border/50 mt-2">
+                                <button 
+                                    className={`px-2 py-1 text-[10px] rounded ${draft.text_overlay.subtitle_settings?.enabled === false ? 'bg-black/20 text-muted-foreground' : 'bg-violet-500/20 text-violet-400'}`}
+                                    onClick={() => updateSubtitleSettings('enabled', draft.text_overlay.subtitle_settings?.enabled === false ? true : false)}
+                                >
+                                    {draft.text_overlay.subtitle_settings?.enabled === false ? 'Subtitles Off' : 'Subtitles On'}
+                                </button>
+                                
+                                {draft.text_overlay.subtitle_settings?.enabled !== false && (
+                                    <>
+                                        <Select value={draft.text_overlay.subtitle_settings?.position || 'middle'} onValueChange={(v) => updateSubtitleSettings('position', v)}>
+                                            <SelectTrigger className="h-6 text-[10px] w-20"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="top" className="text-[10px]">Top</SelectItem>
+                                                <SelectItem value="middle" className="text-[10px]">Middle</SelectItem>
+                                                <SelectItem value="bottom" className="text-[10px]">Bottom</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        
+                                        <Select value={draft.text_overlay.subtitle_settings?.color || 'white'} onValueChange={(v) => updateSubtitleSettings('color', v)}>
+                                            <SelectTrigger className="h-6 text-[10px] w-20"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="white" className="text-[10px]">White</SelectItem>
+                                                <SelectItem value="yellow" className="text-[10px]">Yellow</SelectItem>
+                                                <SelectItem value="cyan" className="text-[10px]">Cyan</SelectItem>
+                                                <SelectItem value="green" className="text-[10px]">Green</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>
@@ -260,13 +322,13 @@ export function EditableSceneBlock({
                         {isEditing ? (
                             <div className="space-y-1.5">
                                 <Textarea
-                                    value={draft.voiceover.text}
+                                    value={draft?.voiceover?.text || ""}
                                     onChange={(e) => updateVoiceover("text", e.target.value)}
                                     placeholder="Voiceover script"
                                     className="text-xs min-h-[48px] resize-none"
                                 />
                                 <Select
-                                    value={draft.voiceover.tone}
+                                    value={draft?.voiceover?.tone || ""}
                                     onValueChange={(v) => updateVoiceover("tone", v)}
                                 >
                                     <SelectTrigger className="h-7 text-xs">
@@ -281,8 +343,8 @@ export function EditableSceneBlock({
                             </div>
                         ) : (
                             <>
-                                <p className="text-sm italic opacity-90">&ldquo;{displayScene.voiceover.text}&rdquo;</p>
-                                <p className="text-[10px] text-muted-foreground">Tone: {displayScene.voiceover.tone}</p>
+                                <p className="text-sm italic opacity-90">&ldquo;{displayScene?.voiceover?.text || "..."}&rdquo;</p>
+                                <p className="text-[10px] text-muted-foreground">Tone: {displayScene?.voiceover?.tone || "standard"}</p>
                             </>
                         )}
                     </div>
@@ -292,11 +354,30 @@ export function EditableSceneBlock({
                 <div className="flex gap-2 text-sm">
                     <ImageIcon className="h-4 w-4 text-blue-400 mt-0.5 shrink-0" />
                     <div className="flex-1 space-y-1">
-                        <span className="font-semibold text-xs text-muted-foreground">VISUAL</span>
+                        <span className="font-semibold text-xs text-muted-foreground uppercase flex gap-2 items-center mb-1">
+                            VISUAL 
+                            {isEditing ? (
+                                <Select
+                                    value={draft.camera_motion || "zoom_in"}
+                                    onValueChange={(v) => update("camera_motion", v)}
+                                >
+                                    <SelectTrigger className="h-5 w-24 text-[9px] bg-black/20 border-border/30">
+                                        <SelectValue placeholder="Motion" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CAMERA_MOTIONS.map((m) => (
+                                            <SelectItem key={m} value={m} className="text-[9px]">{m.replace('_', ' ')}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                displayScene.camera_motion && <Badge variant="secondary" className="text-[8px] h-4 px-1">{displayScene.camera_motion.replace('_', ' ')}</Badge>
+                            )}
+                        </span>
                         {isEditing ? (
                             <div className="space-y-1.5">
                                 <Select
-                                    value={draft.visual.base.source}
+                                    value={draft?.visual?.base?.source || ""}
                                     onValueChange={(v) => updateVisualBase("source", v)}
                                 >
                                     <SelectTrigger className="h-7 text-xs">
@@ -308,17 +389,17 @@ export function EditableSceneBlock({
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                {(draft.visual.base.source === "stock_video" || draft.visual.base.source === "generate_image") && (
+                                {(draft?.visual?.base?.source === "generate_image" || draft?.visual?.base?.source === "generate_video") && (
                                     <Input
-                                        value={draft.visual.base.prompt || ""}
+                                        value={draft?.visual?.base?.prompt || ""}
                                         onChange={(e) => updateVisualBase("prompt", e.target.value)}
                                         placeholder="Describe the visual..."
                                         className="h-7 text-xs"
                                     />
                                 )}
-                                {draft.visual.base.source === "uploaded_asset" && (
+                                {draft?.visual?.base?.source === "uploaded_asset" && (
                                     <Input
-                                        value={draft.visual.base.gcs_uri || draft.visual.base.asset_id || ""}
+                                        value={draft?.visual?.base?.gcs_uri || draft?.visual?.base?.asset_id || ""}
                                         onChange={(e) => updateVisualBase("gcs_uri", e.target.value)}
                                         placeholder="gs://bucket/path or asset_id"
                                         className="h-7 text-xs font-mono"
@@ -328,10 +409,10 @@ export function EditableSceneBlock({
                         ) : (
                             <div className="flex items-center gap-2 flex-wrap">
                                 <Badge variant="secondary" className="text-[10px] py-0">
-                                    {displayScene.visual.base.source}
+                                    {displayScene?.visual?.base?.source || "pending..."}
                                 </Badge>
-                                {displayScene.visual.base.prompt && (
-                                    <span className="text-[10px] text-muted-foreground">{displayScene.visual.base.prompt}</span>
+                                {displayScene?.visual?.base?.prompt && (
+                                    <span className="text-[10px] text-muted-foreground">{displayScene?.visual?.base?.prompt}</span>
                                 )}
                             </div>
                         )}

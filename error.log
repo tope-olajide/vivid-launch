@@ -1,0 +1,64 @@
+[dotenv@17.3.1] injecting env (6) from .env.local -- tip: ÔÜÖ´©Å  load multiple .env files with { path: ['.env.local', '.env'] }
+[Media Worker] Starting job for Campaign worker/mock_single.json...
+[Media Worker] Workspace: C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp
+Loading JSON payload from disk: worker/mock_single.json
+
+============================
+­ƒÄ¼ Rendering Scene 1... [16:9]
+============================
+ÔÜá´©Å  Imagen fallback (GCP_PROJECT_ID is not set in environment.). Using solid-color clip.
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, lavfi, from 'color=c=black:s=1920x1920':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 1920x1920 [SAR 1:1 DAR 1:1], 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> h264 (libx264))
+Press [q] to stop, [?] for help
+[libx264 @ 000001a3819639c0] using SAR=1/1
+[libx264 @ 000001a3819639c0] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 000001a3819639c0] profile High, level 5.0, 4:2:0, 8-bit
+[libx264 @ 000001a3819639c0] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\fallback_1773227301724.mp4':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 1920x1920 [SAR 1:1 DAR 1:1], q=2-31, 25 fps, 12800 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/A    
+frame=    7 fps=0.0 q=28.0 size=       0kB time=00:00:00.20 bitrate=   1.9kbits/s speed=0.393x    
+[mp4 @ 000001a3819627c0] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 000001a381962680] video:15kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 15.205988%
+frame=  125 fps=113 q=-1.0 Lsize=      18kB time=00:00:04.88 bitrate=  29.5kbits/s speed=4.41x    
+[libx264 @ 000001a3819639c0] frame I:1     Avg QP: 9.00  size:   722
+[libx264 @ 000001a3819639c0] frame P:31    Avg QP: 9.23  size:   121
+[libx264 @ 000001a3819639c0] frame B:93    Avg QP:12.67  size:   113
+[libx264 @ 000001a3819639c0] consecutive B-frames:  0.8%  0.0%  0.0% 99.2%
+[libx264 @ 000001a3819639c0] mb I  I16..4: 100.0%  0.0%  0.0%
+[libx264 @ 000001a3819639c0] mb P  I16..4:  0.0%  0.0%  0.0%  P16..4:  0.0%  0.0%  0.0%  0.0%  0.0%    skip:100.0%
+[libx264 @ 000001a3819639c0] mb B  I16..4:  0.0%  0.0%  0.0%  B16..8:  0.0%  0.0%  0.0%  direct: 0.0%  skip:100.0%
+[libx264 @ 000001a3819639c0] 8x8 transform intra:0.0%
+[libx264 @ 000001a3819639c0] coded y,uvDC,uvAC intra: 0.0% 0.0% 0.0% inter: 0.0% 0.0% 0.0%
+[libx264 @ 000001a3819639c0] i16 v,h,dc,p: 99%  0%  1%  0%
+[libx264 @ 000001a3819639c0] i8c dc,h,v,p: 100%  0%  0%  0%
+[libx264 @ 000001a3819639c0] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 000001a3819639c0] kb/s:23.91
+­ƒÄÖ´©Å Synthesizing Voiceover: "This is a single scene test for GCS upload consistency."
+[Media Worker] Fatal Error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at GoogleAuth.getApplicationDefaultAsync (C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\google-gax\node_modules\google-auth-library\build\src\auth\googleauth.js:284:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async #determineClient (C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\google-gax\node_modules\google-auth-library\build\src\auth\googleauth.js:764:36)
+    at async GoogleAuth.getClient (C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\google-gax\node_modules\google-auth-library\build\src\auth\googleauth.js:741:20)
+    at async GrpcClient._getCredentials (C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\google-gax\build\src\grpc.js:192:24)
+    at async GrpcClient.createStub (C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\google-gax\build\src\grpc.js:373:23)

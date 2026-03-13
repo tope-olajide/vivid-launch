@@ -38,12 +38,16 @@ const sceneSchema = z.object({
     text_overlay: z.object({
         content:        z.string(),
         animation:      z.string(),
-        subtitle_style: z.string().optional(),
+        subtitle_settings: z.object({
+            enabled: z.boolean(),
+            position: z.enum(['top', 'middle', 'bottom']),
+            color: z.enum(['white', 'yellow', 'cyan', 'green'])
+        }).optional()
     }),
     visual: z.object({
         base: z.object({
-            source:               z.string(),
-            asset_id:             z.string().optional(),
+            source:               z.enum(["uploaded_asset", "generate_image", "generate_video"]),
+            asset_id:             z.string().describe("The exact 20-character alphanumeric ID of the asset. DO NOT USE THE FILENAME.").optional(),
             prompt:               z.string().optional(),
             start_time_seconds:   z.number().optional(),
             end_time_seconds:     z.number().optional(),
@@ -58,13 +62,14 @@ const storyboardSchema = z.object({ scenes: z.array(sceneSchema) });
 async function generateVariant(
     projectContext: string,
     angle: 'A' | 'B',
+    useVeo: boolean
 ): Promise<z.infer<typeof storyboardSchema>> {
     const angleInstruction = angle === 'A'
         ? 'Focus on the EMOTIONAL STORY and human outcome. Open with a bold problem statement.'
         : 'Focus on the TECHNICAL PROOF and data-driven results. Open with a striking statistic or achievement.';
 
     const { object } = await generateObject({
-        model: google('gemini-2.0-flash'),
+        model: google('gemini-3-flash-preview'),
         schema: storyboardSchema,
         prompt: `You are a Creative Director AI generating a video storyboard.
 
@@ -80,8 +85,10 @@ Generate a 4-6 scene storyboard. Each scene must have:
 - A specific duration (4–8 seconds)
 - A text overlay (punchy headline, < 6 words)  
 - A voiceover script (1–3 sentences)
-- A visual source: "generate_image", or "uploaded_asset"
-- A highly descriptive visual prompt if source is generate_image
+- A visual source: "uploaded_asset", "generate_image"${useVeo ? ', or "generate_video"' : ''}
+- For visual.base.source, prefer 'uploaded_asset' if an appropriate asset exists in the brief, referencing it exactly by its 20-character asset_id. NEVER use the filename for the asset_id.
+- IF the 'uploaded_asset' is a video, estimate 'start_time_seconds' and 'end_time_seconds'.
+- ${useVeo ? "Use 'generate_video' heavily if no suitable uploaded asset is found (since High Quality Video Generation is ENABLED) and provide a rich prompt describing the fast, dynamic motion in extreme detail." : "Otherwise, use 'generate_image' (provide a highly descriptive visual prompt for Google Imagen)."}
 
 Return ONLY valid JSON.`,
     });
@@ -93,9 +100,10 @@ Return ONLY valid JSON.`,
 
 export async function POST(request: NextRequest) {
     try {
-        const { projectId, prompt } = await request.json() as {
+        const { projectId, prompt, useVeo } = await request.json() as {
             projectId: string;
             prompt?: string;
+            useVeo?: boolean;
         };
 
         if (!projectId) {
@@ -111,7 +119,7 @@ export async function POST(request: NextRequest) {
         console.log(`[Variants API] Initiating context gathering loop for project ${projectId}...`);
         
         const chat = ai.chats.create({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-3-flash-preview',
             config: {
                 systemInstruction: `You are the Creative Director Researcher for VividLaunch. You compile project briefs so a video storyboard can be generated. 
 You have tools to fetch project context, assets, and scrape websites. 
@@ -170,8 +178,8 @@ INSTRUCTIONS:
 
         // Generate both variants in parallel using Vercel AI SDK
         const [variantA, variantB] = await Promise.all([
-            generateVariant(creativeBrief, 'A'),
-            generateVariant(creativeBrief, 'B'),
+            generateVariant(creativeBrief, 'A', !!useVeo),
+            generateVariant(creativeBrief, 'B', !!useVeo),
         ]);
 
         return NextResponse.json({

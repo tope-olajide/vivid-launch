@@ -33,6 +33,7 @@
     "fluent-ffmpeg": "^2.1.3",
     "framer-motion": "^12.34.5",
     "lucide-react": "^0.576.0",
+    "mp3-duration": "^1.1.0",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
     "node-fetch": "^2.7.0",

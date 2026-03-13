@@ -1,0 +1,62 @@
+[dotenv@17.3.1] injecting env (6) from .env.local -- tip: ­ƒöÉ prevent committing .env to code: https://dotenvx.com/precommit
+Listing files in bucket: vividlaunch-assets
+Found 36 files:
+ - projects/19pOQq6pdOFmP2R4X7F2/1772782533108_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/19pOQq6pdOFmP2R4X7F2/1772782539595_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/19pOQq6pdOFmP2R4X7F2/1772782541443_Screenshot 2026-02-27 133401.png (249257 bytes)
+ - projects/19pOQq6pdOFmP2R4X7F2/1772782543223_Elite Sports Intelligence Engine (1).mp4 (104231993 bytes)
+ - projects/20Cn9Kc4CHL6vE4mH8Xe/1772815998337_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/20Cn9Kc4CHL6vE4mH8Xe/1772816000933_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/20Cn9Kc4CHL6vE4mH8Xe/1772816002802_Screenshot 2026-02-27 133401.png (249257 bytes)
+ - projects/20Cn9Kc4CHL6vE4mH8Xe/1772816004632_Elite Sports Intelligence Engine (1).mp4 (104231993 bytes)
+ - projects/Gy4koRKoKcYVpiitPjeI/1772793911823_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/Gy4koRKoKcYVpiitPjeI/1772793913924_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/Gy4koRKoKcYVpiitPjeI/1772793915663_Screenshot 2026-02-27 133401.png (249257 bytes)
+ - projects/Gy4koRKoKcYVpiitPjeI/1772793917247_Elite Sports Intelligence Engine (1).mp4 (104231993 bytes)
+ - projects/QiO92TYTIQI2cZibznhX/1772794535816_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/QiO92TYTIQI2cZibznhX/1772794537932_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/QiO92TYTIQI2cZibznhX/1772794539462_Screenshot 2026-02-27 133401.png (249257 bytes)
+ - projects/QiO92TYTIQI2cZibznhX/1772794541021_Elite Sports Intelligence Engine (1).mp4 (104231993 bytes)
+ - projects/RjulA1CihZ5Oxrf163GK/1773224389467_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/RjulA1CihZ5Oxrf163GK/1773224391503_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/RjulA1CihZ5Oxrf163GK/1773224393026_Screenshot 2026-02-27 133401.png (249257 bytes)
+ - projects/SZeHPUAQ68yzY8gVqoNQ/1772787178390_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/SZeHPUAQ68yzY8gVqoNQ/1772787181236_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/SZeHPUAQ68yzY8gVqoNQ/1772787183044_Screenshot 2026-02-27 133401.png (249257 bytes)
+ - projects/ZKYHFBs8Y3xgApSdnnbd/1772792637241_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/ZKYHFBs8Y3xgApSdnnbd/1772792638712_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/ZKYHFBs8Y3xgApSdnnbd/1772792640251_Screenshot 2026-02-27 133401.png (249257 bytes)
+ - projects/ZKYHFBs8Y3xgApSdnnbd/1772792641808_Elite Sports Intelligence Engine (1).mp4 (104231993 bytes)
+ - projects/vuNYCrKY2YqoL6HKi5Uo/1773150655609_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/vuNYCrKY2YqoL6HKi5Uo/1773150660608_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/vuNYCrKY2YqoL6HKi5Uo/1773150663254_Screenshot 2026-02-27 133401.png (249257 bytes)
+ - projects/w7DNifMQHxAfdAZEnEGW/1772796099358_Elite Sports Intelligence Engine (1).mp4 (104231993 bytes)
+ - projects/w7DNifMQHxAfdAZEnEGW/1772796136920_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/w7DNifMQHxAfdAZEnEGW/1772796138662_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/w7DNifMQHxAfdAZEnEGW/1772796140500_Screenshot 2026-02-27 133401.png (249257 bytes)
+ - projects/y5LBxWdAmG0D5uZm9LKS/1772877655221_Screenshot 2026-02-27 110557.png (213522 bytes)
+ - projects/y5LBxWdAmG0D5uZm9LKS/1772877657231_Screenshot 2026-02-27 131324.png (257541 bytes)
+ - projects/y5LBxWdAmG0D5uZm9LKS/1772877658620_Screenshot 2026-02-27 133401.png (249257 bytes)
+--- CORS CONFIG ---
+[
+  {
+    "origin": [
+      "*"
+    ],
+    "method": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "OPTIONS"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "Authorization",
+      "Content-Range",
+      "Accept-Ranges",
+      "Range"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

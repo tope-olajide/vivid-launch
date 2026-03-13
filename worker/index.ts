@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import ffmpeg = require('fluent-ffmpeg');
+const mp3Duration = require('mp3-duration');
 import { generateTTS } from './tts';
 import { downloadFromGCS, generateImagenImage } from './assets';
 
@@ -34,6 +35,7 @@ async function resolveAndDownloadAsset(
     prompt?: string,
     duration: number = 5,
     gcsUri?: string,          // Direct gs:// URI injected by the orchestrator payload
+    projectId?: string
 ): Promise<string> {
 
     // ── 1. User-uploaded asset ──────────────────────────────────────────────
@@ -50,12 +52,14 @@ async function resolveAndDownloadAsset(
     // ── 2. AI-generated image (Vertex AI Imagen) ────────────────────────────
     if (source === 'generate_image') {
         const imgPrompt = prompt || 'cinematic background';
-        const dest = path.join(WORK_DIR, `imagen_${Date.now()}.jpg`);
+        
         try {
-            return await generateImagenImage(imgPrompt, dest);
+            const dest = path.join(WORK_DIR, `imagen_${Date.now()}.jpg`);
+            return await generateImagenImage(imgPrompt, dest, projectId);
         } catch (err: any) {
             console.warn(`⚠️  Imagen fallback (${err.message}). Using solid-color clip.`);
-            return await createSolidColorVideo(dest, duration, 'black');
+            const fallbackDest = path.join(WORK_DIR, `fallback_${Date.now()}.mp4`);
+            return await createSolidColorVideo(fallbackDest, duration, 'black');
         }
     }
 
@@ -73,7 +77,7 @@ function createSolidColorVideo(outputPath: string, duration: number, color: stri
         try {
             const ffmpegPath = require('ffmpeg-static');
             const { execSync } = require('child_process');
-            const cmd = `"${ffmpegPath}" -y -f lavfi -i color=c=${color}:s=1920x1920 -t ${duration} -c:v libx264 -pix_fmt yuv420p "${outputPath}"`;
+            const cmd = `"${ffmpegPath}" -y -f lavfi -i color=c=${color}:s=1920x1920 -t ${duration} -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${outputPath}"`;
             execSync(cmd, { stdio: 'inherit' });
             resolve(outputPath);
         } catch (e) {
@@ -85,7 +89,7 @@ function createSolidColorVideo(outputPath: string, duration: number, color: stri
 /**
  * Renders a single scene from the Gemini-generated JSON block.
  */
-async function renderScene(scene: any, index: number, aspectRatio: string = '16:9'): Promise<string> {
+async function renderScene(scene: any, index: number, aspectRatio: string = '16:9', projectId?: string): Promise<string> {
     console.log(`\n============================`);
     console.log(`🎬 Rendering Scene ${index + 1}... [${aspectRatio}]`);
     console.log(`============================`);
@@ -100,6 +104,7 @@ async function renderScene(scene: any, index: number, aspectRatio: string = '16:
         scene.visual.base.prompt,
         scene.duration,
         scene.visual.base.gcs_uri, // orchestrator may pass gs:// URI directly
+        projectId
     );
 
     // 2. Synthesize TTS
@@ -108,6 +113,15 @@ async function renderScene(scene: any, index: number, aspectRatio: string = '16:
     console.log(`🎙️ Synthesizing Voiceover: "${scene.voiceover.text}"`);
     const audioBuffer = await generateTTS(scene.voiceover.text, scene.voiceover.tone);
     fs.writeFileSync(ttsPath, audioBuffer);
+
+    // 2.5 Compute Audio Duration & Add Pacing
+    const audioDuration = await mp3Duration(ttsPath);
+    console.log(`⏱️ TTS Audio Length: ${audioDuration.toFixed(2)}s`);
+    
+    // Ensure scene is long enough for the audio + 0.8s padding to prevent clipping
+    // Ensure scene is long enough for the audio + 2.5s padding to prevent clipping and give breathing room
+    const actualDuration = Math.max((scene.duration || 5), audioDuration + 2.5);
+    console.log(`⏱️ Final Scene Duration: ${actualDuration.toFixed(2)}s`);
 
     // 3. Setup FFmpeg Pipeline
     console.log(`⚙️ Running FFmpeg compositor directly via spawn...`);
@@ -120,29 +134,100 @@ async function renderScene(scene: any, index: number, aspectRatio: string = '16:
         // Determine dynamic resolution based on aspectRatio
         const [w, h] = aspectRatio === '9:16' ? [1080, 1920] : [1920, 1080];
         
-        complexFilters.push(`[0:v]scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,fps=30[v1]`);
+        // --- Visual motion (Ken Burns / zoompan) ---
+        let scaleFilter = `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,fps=30`;
+        
+        // If it's a generated image or uploaded image, we can apply motion
+        const basePathLower = baseVisualPath.toLowerCase();
+        const isImage = basePathLower.endsWith('.jpg') || basePathLower.endsWith('.png') || basePathLower.endsWith('.jpeg');
+        if (isImage) {
+            const motion = scene.camera_motion || 'zoom_in';
+            // Scale up slightly first to give room for panning/zooming without black bars
+            const bgW = Math.floor(w * 1.2);
+            const bgH = Math.floor(h * 1.2);
+            
+            const frames = Math.ceil(actualDuration * 30);
+            
+            // Generate zooming/panning expressions
+            let zExpr = '1';
+            let xExpr = '0';
+            let yExpr = '0';
+            
+            if (motion === 'zoom_in') {
+                zExpr = 'min(zoom+0.0015,1.5)';
+                xExpr = '(iw/2)-(iw/zoom/2)';
+                yExpr = '(ih/2)-(ih/zoom/2)';
+            } else if (motion === 'zoom_out') {
+                zExpr = 'if(eq(on,1),1.5,max(1.0,zoom-0.0015))';
+                xExpr = '(iw/2)-(iw/zoom/2)';
+                yExpr = '(ih/2)-(ih/zoom/2)';
+            } else if (motion === 'pan_right') {
+                zExpr = '1.2';
+                xExpr = `min((on-1)*((iw-iw/zoom)/${frames}),iw-iw/zoom)`;
+                yExpr = '(ih/2)-(ih/zoom/2)';
+            } else if (motion === 'pan_left') {
+                zExpr = '1.2';
+                xExpr = `max((iw-iw/zoom)-(on-1)*((iw-iw/zoom)/${frames}),0)`;
+                yExpr = '(ih/2)-(ih/zoom/2)';
+            } else if (motion === 'pan_up') {
+                zExpr = '1.2';
+                xExpr = '(iw/2)-(iw/zoom/2)';
+                yExpr = `max((ih-ih/zoom)-(on-1)*((ih-ih/zoom)/${frames}),0)`;
+            } else if (motion === 'pan_down') {
+                zExpr = '1.2';
+                xExpr = '(iw/2)-(iw/zoom/2)';
+                yExpr = `min((on-1)*((ih-ih/zoom)/${frames}),ih-ih/zoom)`;
+            }
 
-        const escapedText = scene.text_overlay.content.replace(/[^a-zA-Z0-9 ]/g, '');
-        // Windows CMD quoting is extremely picky. 
-        // We push the raw un-quoted filter component here, and we'll quote the whole -filter_complex block in the cmd string.
-        complexFilters.push(`[v1]drawtext=fontfile=C\\\\\\\\:/Windows/Fonts/arial.ttf: text='${escapedText}': fontcolor=white: fontsize=84: x=(w-text_w)/2: y=(h-text_h)/2: box=1: boxcolor=black@0.5: boxborderw=20[v2]`);
+            scaleFilter = `scale=${bgW}:${bgH}:force_original_aspect_ratio=increase,crop=${bgW}:${bgH},setsar=1,zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=${w}x${h}:fps=30`;
+        }
+        
+        complexFilters.push(`[0:v]${scaleFilter}[v1]`);
 
-        // Use v2 as final output
+        // --- Subtitles ---
+        // Default to on if undefined, but respect explicit false
+        const showSubtitles = scene.text_overlay?.subtitle_settings?.enabled !== false;
+        
+        if (showSubtitles && scene.text_overlay?.content) {
+            const escapedText = scene.text_overlay.content.replace(/[^a-zA-Z0-9.\-?! ]/g, '');
+            const subColor = scene.text_overlay?.subtitle_settings?.color || 'white';
+            const subPos = scene.text_overlay?.subtitle_settings?.position || 'middle';
+            
+            let yPos = '(h-text_h)/2'; // middle
+            if (subPos === 'top') yPos = 'h*0.15';
+            else if (subPos === 'bottom') yPos = 'h*0.80';
+
+            complexFilters.push(`[v1]drawtext=fontfile=C\\\\\\\\:/Windows/Fonts/arialbd.ttf: text='${escapedText}': fontcolor=${subColor}: fontsize=72: x=(w-text_w)/2: y=${yPos}: box=1: boxcolor=black@0.6: boxborderw=20[vOut]`);
+        } else {
+             complexFilters.push(`[v1]copy[vOut]`);
+        }
+        
+        // --- Audio Pacing (Silence padding) ---
+        // Pad audio out completely to match the actualDuration (capped by -t)
+        complexFilters.push(`[1:a]apad[aOut]`);
+
+        const inputArgsStart = [];
+        inputArgsStart.push('-y');
+        if (!isImage) {
+            // Only loop indefinitely if the visual is a video. 
+            // Setting loop for images breaks zoompan timeframe calculation.
+            inputArgsStart.push('-stream_loop', '-1');
+        }
+
         const args = [
-            '-y',
-            '-stream_loop', '-1',
+            ...inputArgsStart,
             '-i', `"${baseVisualPath}"`,
             '-i', `"${ttsPath}"`,
             '-filter_complex', `"${complexFilters.join(';')}"`,
-            '-map', '"[v2]"',
-            '-map', '1:a',
+            '-map', '"[vOut]"',
+            '-map', '"[aOut]"',
             '-c:v', 'libx264',
             '-tune', 'stillimage',
             '-c:a', 'aac',
             '-b:a', '192k',
             '-pix_fmt', 'yuv420p',
-            '-shortest',
-            '-t', scene.duration.toString(),
+            '-movflags', '+faststart',
+            '-t', actualDuration.toString(),
             `"${outputPath}"`
         ];
 
@@ -192,13 +277,25 @@ async function main() {
 
         const scenesData = Array.isArray(payload) ? payload : payload.scenes;
         const aspectRatio = payload.aspectRatio || '16:9';
+        const projectId = payload.projectId;
 
-        const renderedScenes: string[] = [];
+        const renderedScenes: { path: string, duration: number, transition: string }[] = [];
 
         // Render each scene sequentially
         for (let i = 0; i < scenesData.length; i++) {
-            const scenePath = await renderScene(scenesData[i], i, aspectRatio);
-            renderedScenes.push(scenePath);
+            const scenePath = await renderScene(scenesData[i], i, aspectRatio, projectId);
+            // We need the ACTUAL duration for accurate xfade overlapping.
+            // Executing ffprobe to get exact generated duration.
+            const ffprobePath = require('ffprobe-static').path;
+            const { execSync } = require('child_process');
+            const durationOutput = execSync(`"${ffprobePath}" -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${scenePath}"`).toString();
+            const actualSceneDuration = parseFloat(durationOutput.trim());
+            
+            renderedScenes.push({
+                path: scenePath,
+                duration: actualSceneDuration,
+                transition: scenesData[i].transition || 'fade'
+            });
         }
 
         console.log("\n=================================");
@@ -206,39 +303,109 @@ async function main() {
         console.log("📝 Renders:", renderedScenes);
         console.log("=================================\n");
 
-        if (renderedScenes.length > 1) {
-            console.log("⏳ Merging scenes into final video...");
-            const finalOutputPath = path.join(WORK_DIR, 'final_output.mp4');
-            
-            // Create concat input file
-            const concatListPath = path.join(WORK_DIR, 'concat.txt');
-            const concatListContent = renderedScenes.map(file => `file '${path.basename(file)}'`).join('\n');
-            fs.writeFileSync(concatListPath, concatListContent);
+        const finalOutputPath = path.join(WORK_DIR, 'final_output.mp4');
 
-            // Merge via execSync — reliable on all platforms
+        if (renderedScenes.length > 1) {
+            console.log("⏳ Merging scenes with xfade transitions...");
+            
             const ffmpegPath = require('ffmpeg-static');
             const { execSync } = require('child_process');
-            const mergeCmd = `"${ffmpegPath}" -y -f concat -safe 0 -i "${concatListPath}" -c copy "${finalOutputPath}"`;
+            
+            let filterComplex = "";
+            let inputArgs: string[] = [];
+            let currentOffset = 0;
+            const crossfadeDur = 1.0; // 1 second overlap for transitions
+
+            // Map standard transition names to FFmpeg xfade types
+            const getXfadeType = (name: string) => {
+                const map: Record<string, string> = {
+                    'fade': 'fade',
+                    'wipe-right': 'wiperight',
+                    'wipe-left': 'wipeleft',
+                    'slide-up': 'slideup',
+                    'slide-down': 'slidedown',
+                    'dissolve': 'fade', // xfade covers dissolve smoothly
+                    'cut': 'distance'    // fallback
+                };
+                return map[name.toLowerCase()] || 'fade';
+            };
+
+            // 1. First, declare all inputs and normalize their timebases
+            for (let i = 0; i < renderedScenes.length; i++) {
+                inputArgs.push('-i', `"${renderedScenes[i].path}"`);
+                // Normalizing timebase, framerate, audio sample rate, and resetting timestamps
+                filterComplex += `[${i}:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_${i}];`;
+                filterComplex += `[${i}:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_${i}];`;
+            }
+
+            // 2. Build the xfade chain for video
+            currentOffset = renderedScenes[0].duration;
+            let audioDelays: number[] = [0];
+
+            for (let i = 1; i < renderedScenes.length; i++) {
+                const prevStreamV = i === 1 ? `[v_norm_0]` : `[v_out_${i-1}]`;
+                const nextStreamV = `[v_norm_${i}]`;
+                const outStreamV = `[v_out_${i}]`;
+                
+                const xfadeMode = getXfadeType(renderedScenes[i-1].transition);
+                
+                const offsetStart = Math.max(0.1, currentOffset - crossfadeDur);
+                audioDelays.push(offsetStart);
+
+                filterComplex += `${prevStreamV}${nextStreamV}xfade=transition=${xfadeMode}:duration=${crossfadeDur}:offset=${offsetStart}${outStreamV};`;
+                
+                // The new total length is old offset + new duration - overlap
+                currentOffset = offsetStart + renderedScenes[i].duration;
+            }
+
+            // 3. Build precise amix for audio instead of crossfading to preserve full volume
+            let audioMixInputs = '';
+            for (let i = 0; i < renderedScenes.length; i++) {
+                const delayMs = Math.floor(audioDelays[i] * 1000);
+                filterComplex += `[a_norm_${i}]adelay=${delayMs}|${delayMs}[a_delayed_${i}];`;
+                audioMixInputs += `[a_delayed_${i}]`;
+            }
+            filterComplex += `${audioMixInputs}amix=inputs=${renderedScenes.length}:dropout_transition=0:normalize=0[a_out];`;
+
+            // Remove trailing semicolon
+            filterComplex = filterComplex.replace(/;$/, '');
+            const finalVStream = `[v_out_${renderedScenes.length - 1}]`;
+            const finalAStream = `[a_out]`;
+
+            const mergeCmd = `"${ffmpegPath}" -y ${inputArgs.join(' ')} -filter_complex "${filterComplex}" -map "${finalVStream}" -map "${finalAStream}" -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${finalOutputPath}"`;
+            
             console.log('Merging command:', mergeCmd);
             execSync(mergeCmd, { stdio: 'inherit' });
+            console.log(`✅✅ SUCCESS! Final video merged to: ${finalOutputPath}`);
+        } else if (renderedScenes.length === 1) {
+            console.log("🎬 Single scene detected. Copying to final output...");
+            fs.copyFileSync(renderedScenes[0].path, finalOutputPath);
             console.log(`✅✅ SUCCESS! Final video saved to: ${finalOutputPath}`);
+        }
 
-            // Upload to GCS if a project ID is set
-            const outputGcsPath = process.env.GCS_OUTPUT_PATH;
-            if (outputGcsPath) {
-                const { Storage } = require('@google-cloud/storage');
-                const storage = new Storage({
-                    projectId: GCP_PROJECT,
-                    credentials: {
-                        client_email: process.env.GCP_CLIENT_EMAIL!,
-                        private_key: (process.env.GCP_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-                    },
-                });
-                const destBucket = process.env.GCS_BUCKET_NAME!;
-                const destObj    = `${outputGcsPath}/final_output.mp4`;
-                await storage.bucket(destBucket).upload(finalOutputPath, { destination: destObj });
-                console.log(`☁️  Uploaded to gs://${destBucket}/${destObj}`);
-            }
+        // ── Upload to GCS ──────────────────────────────────────────────────
+        const outputGcsPath = process.env.GCS_OUTPUT_PATH;
+        if (outputGcsPath && fs.existsSync(finalOutputPath)) {
+            console.log(`⏳ Uploading final video for project context: ${outputGcsPath}`);
+            const { Storage } = require('@google-cloud/storage');
+            const storage = new Storage({
+                projectId: GCP_PROJECT,
+                credentials: {
+                    client_email: process.env.GCP_CLIENT_EMAIL!,
+                    private_key: (process.env.GCP_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+                },
+            });
+            const destBucket = process.env.GCS_BUCKET_NAME!;
+            const destObj    = `${outputGcsPath}/final_output.mp4`;
+            
+            await storage.bucket(destBucket).upload(finalOutputPath, { 
+                destination: destObj,
+                metadata: {
+                    contentType: 'video/mp4',
+                    cacheControl: 'public, max-age=3600',
+                }
+            });
+            console.log(`☁️  Uploaded to gs://${destBucket}/${destObj}`);
         }
 
     } catch (err) {

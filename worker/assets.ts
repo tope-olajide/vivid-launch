@@ -61,8 +61,31 @@ export async function downloadFromGCS(gcsUri: string, destPath: string): Promise
     let bucketName = GCS_BUCKET;
     let objectPath  = gcsUri;
 
-    // Parse gs://bucket/object style URIs
-    if (gcsUri.startsWith('gs://')) {
+    // If it's a short alphanumeric ID (no slashes), it's likely a Firestore asset_id
+    if (!gcsUri.startsWith('gs://') && !gcsUri.includes('/')) {
+        console.log(`🔍 Resolving asset_id: ${gcsUri} via Firestore...`);
+        const { Firestore } = require('@google-cloud/firestore');
+        const db = new Firestore(credentials);
+        const doc = await db.collection('assets').doc(gcsUri).get();
+        if (!doc.exists) {
+            throw new Error(`Asset not found in Firestore: ${gcsUri}`);
+        }
+        const data = doc.data();
+        if (data && data.gcsUrl) {
+            gcsUri = data.gcsUrl;
+            console.log(`   ↳ Resolved to: ${gcsUri}`);
+        } else {
+            throw new Error(`Asset document missing gcsUrl: ${gcsUri}`);
+        }
+    }
+
+    // Parse https://storage.googleapis.com/bucket/object or gs://bucket/object
+    if (gcsUri.startsWith('https://storage.googleapis.com/')) {
+        const withoutDomain = gcsUri.replace('https://storage.googleapis.com/', '');
+        const slashIdx = withoutDomain.indexOf('/');
+        bucketName = withoutDomain.slice(0, slashIdx);
+        objectPath = decodeURIComponent(withoutDomain.slice(slashIdx + 1));
+    } else if (gcsUri.startsWith('gs://')) {
         const withoutScheme = gcsUri.slice(5);
         const slashIdx = withoutScheme.indexOf('/');
         bucketName = withoutScheme.slice(0, slashIdx);
@@ -82,11 +105,10 @@ export async function downloadFromGCS(gcsUri: string, destPath: string): Promise
  * Calls Vertex AI Imagen 3 to generate a 1920×1080 image from `prompt`
  * and saves it as a JPEG to `destPath`.
  */
-export async function generateImagenImage(prompt: string, destPath: string): Promise<string> {
+export async function generateImagenImage(prompt: string, destPath: string, projectId?: string): Promise<string> {
     if (!GCP_PROJECT) throw new Error('GCP_PROJECT_ID is not set in environment.');
 
     const { GoogleAuth } = require('google-auth-library');
-
     const auth = new GoogleAuth({
         credentials: {
             client_email: process.env.GCP_CLIENT_EMAIL!,
@@ -97,7 +119,9 @@ export async function generateImagenImage(prompt: string, destPath: string): Pro
 
     const client  = await auth.getClient();
     const token   = (await client.getAccessToken()).token;
-    const location = process.env.GCP_LOCATION_ID || 'us-central1';
+    
+    // Force us-central1 for Vertex AI Image generation endpoint because 'US' breaks the URL routing
+    const location = 'us-central1';
 
     const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${location}/publishers/google/models/imagen-3.0-generate-001:predict`;
 
@@ -129,8 +153,47 @@ export async function generateImagenImage(prompt: string, destPath: string): Pro
     const result = await response.json() as any;
     const b64    = result?.predictions?.[0]?.bytesBase64Encoded;
     if (!b64) throw new Error('Imagen returned no image data.');
-
+    
     fs.writeFileSync(destPath, Buffer.from(b64, 'base64'));
     console.log(`   ✅ Generated image saved to ${destPath}`);
+
+    // If projectId is provided, let's also silently upload this to GCS and save it to the Asset Library
+    if (projectId) {
+        try {
+            console.log(`   🗃️ Saving Generated Image to Asset Library...`);
+            const { Storage } = require('@google-cloud/storage');
+            const { Firestore } = require('@google-cloud/firestore');
+            
+            const gcsDest = `projects/${projectId}/generated_${Date.now()}.jpg`;
+            const storage = new Storage({ 
+                projectId: GCP_PROJECT, 
+                credentials: auth.credentials 
+            });
+            await storage.bucket(GCS_BUCKET).upload(destPath, {
+                destination: gcsDest,
+                metadata: { contentType: 'image/jpeg' }
+            });
+            
+            const db = new Firestore({ 
+                projectId: GCP_PROJECT, 
+                credentials: auth.credentials 
+            });
+            
+            const gcsUrl = `gs://${GCS_BUCKET}/${gcsDest}`;
+            await db.collection('assets').add({
+                projectId,
+                type: 'image',
+                source: 'imagen',
+                prompt: prompt,
+                gcsUrl: gcsUrl,
+                status: 'ready',
+                createdAt: new Date().toISOString()
+            });
+            console.log(`   ✅ Image added to Asset Library`);
+        } catch (e: any) {
+             console.warn(`   ⚠️ Could not save to Asset Library:`, e.message);
+        }
+    }
+
     return destPath;
 }

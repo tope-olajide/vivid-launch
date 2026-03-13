@@ -57,9 +57,8 @@ export async function getProjectAssets(projectId: string) {
     const snapshot = await db.collection(COLLECTIONS.ASSETS).where('projectId', '==', projectId).get();
     const assets = snapshot.docs.map(doc => ({
         asset_id: doc.id,
-        filename: doc.data().filename,
+        filename: doc.data().name, // Use the correct field 'name'
         type: doc.data().type,
-        gcsUrl: doc.data().gcsUrl,
     }));
     return { assets: assets.length > 0 ? assets : 'No assets uploaded yet.' };
 }

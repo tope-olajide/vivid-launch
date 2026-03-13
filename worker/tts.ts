@@ -1,7 +1,19 @@
 import * as textToSpeech from '@google-cloud/text-to-speech';
 
-// Requires GOOGLE_APPLICATION_CREDENTIALS in environment
-const client = new textToSpeech.TextToSpeechClient();
+let client: textToSpeech.TextToSpeechClient | null = null;
+
+function getClient() {
+    if (!client) {
+        client = new textToSpeech.TextToSpeechClient({
+            projectId: process.env.GCP_PROJECT_ID,
+            credentials: {
+                client_email: process.env.GCP_CLIENT_EMAIL,
+                private_key: (process.env.GCP_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+            }
+        });
+    }
+    return client;
+}
 
 /**
  * Maps our semantic tones to specific GCP voices.
@@ -22,7 +34,8 @@ export async function generateTTS(text: string, tone: string): Promise<Uint8Arra
         audioConfig: { audioEncoding: 'MP3' as const },
     };
 
-    const [response] = await client.synthesizeSpeech(request);
+    const ttsClient = getClient();
+    const [response] = await ttsClient.synthesizeSpeech(request);
     if (!response.audioContent) {
         throw new Error('TTS Failed to return audio content');
     }

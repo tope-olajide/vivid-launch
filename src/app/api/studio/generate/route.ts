@@ -26,12 +26,16 @@ const sceneBlockSchema = z.object({
         text_overlay: z.object({
             content: z.string(),
             animation: z.string(),
-            subtitle_style: z.string()
+            subtitle_settings: z.object({
+                enabled: z.boolean(),
+                position: z.enum(['top', 'middle', 'bottom']),
+                color: z.enum(['white', 'yellow', 'cyan', 'green'])
+            }).optional()
         }),
         visual: z.object({
             base: z.object({
-                source: z.enum(['uploaded_asset', 'generate_image']),
-                asset_id: z.string().optional(),
+                source: z.enum(['uploaded_asset', 'generate_image', 'generate_video']),
+                asset_id: z.string().describe("The exact 20-character alphanumeric ID of the asset. DO NOT USE THE FILENAME.").optional(),
                 prompt: z.string().optional(),
                 start_time_seconds: z.number().optional(),
                 end_time_seconds: z.number().optional()
@@ -46,7 +50,7 @@ const sceneBlockSchema = z.object({
 
 export async function POST(req: Request) {
     try {
-        const { projectId, prompt } = await req.json();
+        const { projectId, prompt, useVeo } = await req.json();
 
         if (!projectId) {
             return new Response("Missing projectId", { status: 400 });
@@ -63,7 +67,7 @@ export async function POST(req: Request) {
         
         // Let the agent use tools to fetch context autonomously
         const chat = ai.chats.create({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-3-flash-preview',
             config: {
                 systemInstruction: `You are the Creative Director Researcher for VividLaunch. You compile project briefs so a video storyboard can be generated. 
 You have tools to fetch project context, assets, and scrape websites. 
@@ -129,18 +133,18 @@ INSTRUCTIONS:
         
         // Re-fetch assets manually just to get GCS URLs for the Vercel AI SDK passing 
         // (Since the ADK loop returns text summaries, we still need the raw image buffers for the vision model)
-        const rawAssets = await getProjectAssets(projectId);
+        const { db, COLLECTIONS } = require('@/lib/gcp/firestore');
+        const snapshot = await db.collection(COLLECTIONS.ASSETS).where('projectId', '==', projectId).get();
         const mediaMessages: any[] = [];
         
-        if (Array.isArray(rawAssets.assets)) {
-            for (const asset of rawAssets.assets) {
-                if (asset.gcsUrl && asset.type === 'image') {
-                    const signedUrl = await generateV4ReadSignedUrl(asset.gcsUrl);
-                    mediaMessages.push({
-                        type: 'image',
-                        image: signedUrl,
-                    });
-                }
+        for (const doc of snapshot.docs) {
+            const asset = doc.data();
+            if (asset.gcsUrl && asset.type === 'image') {
+                const signedUrl = await generateV4ReadSignedUrl(asset.gcsUrl);
+                mediaMessages.push({
+                    type: 'image',
+                    image: signedUrl,
+                });
             }
         }
 
@@ -149,7 +153,7 @@ INSTRUCTIONS:
         // ─────────────────────────────────────────────────────────────
 
         const systemPrompt = `
-      You are the Creative Director Gen-Agent for VividLaunch.
+      You are the Creative Director and Cinematographer Gen-Agent for VividLaunch.
       
       CREATIVE BRIEF (Compiled by ADK Researcher):
       ${creativeBrief}
@@ -159,9 +163,14 @@ INSTRUCTIONS:
 
       INSTRUCTIONS:
       Generate a sequence of scene blocks for a promotional video.
-      For visual.base.source, prefer 'uploaded_asset' if an appropriate asset exists in the brief, referencing it by asset_id.
+      - Act as the "Cinematographer": Carefully select the \`transition\` type (e.g., fade, wipeleft, wiperight, slideup, slidedown, circlecrop) for seamless flow between scenes.
+      - Apply cinematic \`camera_motion\` (e.g., zoom_in, zoom_out, pan_left, pan_right) for still images.
+      - Configure \`subtitle_settings\` specifically for the voiceover.
+      - Give the narrator time to breathe: Ensure duration allows natural pacing.
+      
+      For visual.base.source, prefer 'uploaded_asset' if an appropriate asset exists in the brief, referencing it exactly by its 20-character asset_id. NEVER use the filename for the asset_id.
       IF the 'uploaded_asset' is a video, estimate 'start_time_seconds' and 'end_time_seconds'.
-      Otherwise, use 'generate_image' (provide a highly descriptive visual prompt for Google Imagen).
+      ${useVeo ? "Use 'generate_video' heavily if no suitable uploaded asset is found (since High Quality Video Generation is ENABLED) and provide a rich prompt describing the fast, dynamic motion in extreme detail." : "Otherwise, use 'generate_image' (provide a highly descriptive visual prompt for Google Imagen)."}
     `;
 
         const result = await streamObject({
