@@ -1,0 +1,29 @@
+[dotenv@17.3.1] injecting env (6) from .env.local -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+Checking 'assets' collection...
+ID: 0KD55teF7k41fm0s8neH
+Data: {
+  projectId: 'RjulA1CihZ5Oxrf163GK',
+  name: 'Screenshot 2026-02-27 131324.png',
+  type: 'image',
+  gcsUrl: 'https://storage.googleapis.com/vividlaunch-assets/projects/RjulA1CihZ5Oxrf163GK/1773224391503_Screenshot 2026-02-27 131324.png',
+  createdAt: '2026-03-11T10:19:52.581Z',
+  status: 'ready'
+}
+ID: 3N4fnpPVb6lXP7f9MoDs
+Data: {
+  projectId: 'ZKYHFBs8Y3xgApSdnnbd',
+  name: 'Screenshot 2026-02-27 131324.png',
+  type: 'image',
+  gcsUrl: 'https://storage.googleapis.com/vividlaunch-assets/projects/ZKYHFBs8Y3xgApSdnnbd/1772792638712_Screenshot 2026-02-27 131324.png',
+  createdAt: '2026-03-06T10:23:59.748Z',
+  status: 'ready'
+}
+ID: 4hZq4niPulx7CfKlYh8Y
+Data: {
+  projectId: '20Cn9Kc4CHL6vE4mH8Xe',
+  name: 'Screenshot 2026-02-27 110557.png',
+  type: 'image',
+  gcsUrl: 'https://storage.googleapis.com/vividlaunch-assets/projects/20Cn9Kc4CHL6vE4mH8Xe/1772815998337_Screenshot 2026-02-27 110557.png',
+  createdAt: '2026-03-06T16:53:20.469Z',
+  status: 'ready'
+}

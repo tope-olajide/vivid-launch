@@ -1,0 +1,13 @@
+[dotenv@17.3.1] injecting env (6) from .env.local -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+ID: 0KD55teF7k41fm0s8neH
+KEYS: [ 'projectId', 'name', 'type', 'gcsUrl', 'createdAt', 'status' ]
+NAME: Screenshot 2026-02-27 131324.png
+FILENAME: undefined
+FULL DATA: {
+  "projectId": "RjulA1CihZ5Oxrf163GK",
+  "name": "Screenshot 2026-02-27 131324.png",
+  "type": "image",
+  "gcsUrl": "https://storage.googleapis.com/vividlaunch-assets/projects/RjulA1CihZ5Oxrf163GK/1773224391503_Screenshot 2026-02-27 131324.png",
+  "createdAt": "2026-03-11T10:19:52.581Z",
+  "status": "ready"
+}

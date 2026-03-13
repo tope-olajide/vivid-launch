@@ -1,0 +1,15 @@
+[
+  {
+    "scene_id": 1,
+    "duration": 5,
+    "transition": "fade",
+    "voiceover": { "text": "This is a single scene test for GCS upload consistency.", "tone": "professional" },
+    "text_overlay": { "content": "GCS Upload Test", "animation": "fade-in" },
+    "visual": {
+      "base": {
+        "source": "generate_image",
+        "prompt": "blue abstract background"
+      }
+    }
+  }
+]

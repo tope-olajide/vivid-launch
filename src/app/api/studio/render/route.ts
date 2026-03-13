@@ -17,6 +17,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+import { generateV4ReadSignedUrl } from '@/lib/gcp/storage';
 
 // The worker entry point (compiled JS)
 const WORKER_DIR    = path.resolve(process.cwd(), 'worker');
@@ -77,9 +78,12 @@ export async function POST(request: NextRequest) {
             });
 
             const outputGcsPath = `gs://${process.env.GCS_BUCKET_NAME}/rendered_videos/${projectId}/final_output.mp4`;
+            const signedUrl = await generateV4ReadSignedUrl(outputGcsPath);
+            
             return NextResponse.json({
                 status: 'complete',
                 outputGcsPath,
+                outputUrl: signedUrl,
                 message: 'Video rendered successfully.',
             });
         }

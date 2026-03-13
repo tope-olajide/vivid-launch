@@ -6,10 +6,19 @@ import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Video, Sparkles, Play, Settings2, Layers, Download } from "lucide-react";
+import {
+    Video, Sparkles, Play, Settings2, Layers, Download,
+    RotateCcw,
+    Pencil,
+    Check,
+    ChevronUp,
+    ChevronDown,
+    Trash2,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { EditableSceneBlock, type SceneData } from "@/components/studio/EditableSceneBlock";
 
 // Schema must exactly match the backend to parse the stream
@@ -30,7 +39,11 @@ const sceneBlockSchema = z.object({
         text_overlay: z.object({
             content: z.string(),
             animation: z.string(),
-            subtitle_style: z.string()
+            subtitle_settings: z.object({
+                enabled: z.boolean(),
+                position: z.enum(['top', 'middle', 'bottom']),
+                color: z.enum(['white', 'yellow', 'cyan', 'green'])
+            }).optional()
         }),
         visual: z.object({
             base: z.object({
@@ -52,10 +65,36 @@ function VideoStudioContent() {
     const searchParams = useSearchParams();
     const projectId = searchParams.get("projectId");
     const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
+    const [useVeo, setUseVeo] = useState(false);
     const [isRendering, setIsRendering] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [localScenes, setLocalScenes] = useState<SceneData[]>([]);
     const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
+
+    // Load initial project data
+    useEffect(() => {
+        if (!projectId) return;
+
+        const loadProject = async () => {
+            try {
+                const res = await fetch(`/api/projects/${projectId}`);
+                const data = await res.json();
+                if (data.project) {
+                    if (data.project.lastStoryboard) {
+                        setLocalScenes(data.project.lastStoryboard);
+                    }
+                    if (data.project.signedVideoUrl) {
+                        setVideoUrl(data.project.signedVideoUrl);
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading project:", err);
+            }
+        };
+
+        loadProject();
+    }, [projectId]);
 
     const { object, submit, isLoading, error } = useObject({
         api: "/api/studio/generate",
@@ -78,20 +117,36 @@ function VideoStudioContent() {
         if (!projectId) { toast.error("No project selected."); return; }
         setVideoUrl(null);
         setLocalScenes([]);
-        submit({ projectId, prompt: "Generate a high-impact promotional video storyboard." });
+        submit({ projectId, prompt: "Generate a high-impact promotional video storyboard.", useVeo });
+    };
+
+    // Save scenes to Firestore whenever they change (debounce or manual)
+    const saveStoryboard = async (scenes: SceneData[]) => {
+        if (!projectId) return;
+        try {
+            await fetch(`/api/projects/${projectId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ lastStoryboard: scenes }),
+            });
+        } catch (err) {
+            console.error("Failed to save storyboard:", err);
+        }
+    };
+
+    const handleSceneChange = (idx: number, updated: SceneData) => {
+        const next = localScenes.map((s, i) => (i === idx ? updated : s));
+        setLocalScenes(next);
+        saveStoryboard(next);
     };
 
     // Sync streaming output → local editable state once generation settles
     useEffect(() => {
-        if (object?.scenes?.length) {
+        if (!isLoading && object?.scenes) {
             setLocalScenes(object.scenes as SceneData[]);
+            saveStoryboard(object.scenes as SceneData[]);
         }
-    }, [object?.scenes]);
-
-    // ── Scene Handlers ──────────────────────────────────────────
-    const handleSceneChange = (idx: number, updated: SceneData) => {
-        setLocalScenes((prev) => prev.map((s, i) => (i === idx ? updated : s)));
-    };
+    }, [isLoading, object]);
 
     const handleSceneDelete = (idx: number) => {
         setLocalScenes((prev) => prev.filter((_, i) => i !== idx));
@@ -154,9 +209,18 @@ function VideoStudioContent() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Render failed");
 
-            if (data.outputGcsPath) {
-                setVideoUrl(data.outputGcsPath);
-                toast.success("Video rendered! Check your GCS bucket.");
+            if (data.outputUrl) {
+                setVideoUrl(data.outputUrl);
+                toast.success("Video rendered successfully!");
+                
+                // Persist video path
+                if (data.outputGcsPath) {
+                    await fetch(`/api/projects/${projectId}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ lastRenderedVideoGcsPath: data.outputGcsPath }),
+                    });
+                }
             } else {
                 toast.success("Video render queued successfully.");
             }
@@ -202,6 +266,18 @@ function VideoStudioContent() {
                                 Select a project to generate a promo video. The AI will use your assets, brand voice,
                                 and campaign settings to create a full storyboard.
                             </p>
+
+                            <div className="flex items-center justify-between border border-border/50 rounded-lg p-3 bg-black/20 dark:bg-white/5">
+                                <div className="space-y-0.5">
+                                    <h4 className="text-sm font-medium flex items-center gap-2">
+                                        <Sparkles className="h-4 w-4 text-fuchsia-400" />
+                                        Use Veo Generation
+                                    </h4>
+                                    <p className="text-xs text-muted-foreground text-left">High quality, consumes quota</p>
+                                </div>
+                                <Switch checked={useVeo} onCheckedChange={setUseVeo} />
+                            </div>
+
                             <Button
                                 className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white"
                                 onClick={handleGenerate}
@@ -225,9 +301,36 @@ function VideoStudioContent() {
                             {videoUrl && (
                                 <p className="text-xs text-muted-foreground break-all">
                                     <Download className="inline h-3 w-3 mr-1" />
-                                    Output: <span className="text-violet-400">{videoUrl}</span>
+                                    Output: <span className="text-violet-400">{videoUrl.split('?')[0]}</span>
                                 </p>
                             )}
+
+                            <div className="pt-4 mt-6 border-t border-border/30">
+                                <Button
+                                    variant="ghost"
+                                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={async () => {
+                                        if (window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
+                                            setIsDeleting(true);
+                                            try {
+                                                const res = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
+                                                if (res.ok) {
+                                                    toast.success("Project deleted");
+                                                    window.location.href = "/studio/projects";
+                                                }
+                                            } catch (err) {
+                                                toast.error("Failed to delete project");
+                                            } finally {
+                                                setIsDeleting(false);
+                                            }
+                                        }
+                                    }}
+                                    disabled={isDeleting}
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Project
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -302,18 +405,27 @@ function VideoStudioContent() {
                                     </button>
                                 </div>
                             </div>
-                            <div className={`flex-1 min-h-[400px] rounded-xl bg-black/5 dark:bg-white/5 border border-border/30 flex items-center justify-center transition-all duration-500 ${aspectRatio === "9:16" ? "mx-auto max-w-[300px] aspect-[9/16]" : "w-full aspect-video"}`}>
-                                <div className="text-center space-y-3">
-                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mx-auto">
-                                        <Play className="h-8 w-8 text-muted-foreground" />
+                            <div className={`flex-1 min-h-[400px] rounded-xl bg-black/5 dark:bg-white/5 border border-border/30 flex items-center justify-center transition-all duration-500 overflow-hidden ${aspectRatio === "9:16" ? "mx-auto max-w-[300px] aspect-[9/16]" : "w-full aspect-video"}`}>
+                                {videoUrl ? (
+                                    <video
+                                        src={videoUrl}
+                                        controls
+                                        autoPlay
+                                        className="w-full h-full object-contain"
+                                    />
+                                ) : (
+                                    <div className="text-center space-y-3">
+                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mx-auto">
+                                            <Play className="h-8 w-8 text-muted-foreground" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">Video Preview</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {isLoading ? "Generating storyboard..." : isRendering ? "Rendering video..." : "Generate a storyboard to see the live preview"}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-medium">Video Preview</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Generate a storyboard to see the live preview
-                                        </p>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

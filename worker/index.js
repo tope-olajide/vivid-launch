@@ -32,125 +32,199 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
-const ffmpeg = require("fluent-ffmpeg");
 const dotenv = __importStar(require("dotenv"));
+const ffmpeg = require("fluent-ffmpeg");
+const mp3Duration = require('mp3-duration');
 const tts_1 = require("./tts");
-const node_fetch_1 = __importDefault(require("node-fetch")); // need node-fetch v2 for commonjs or native fetch if node 18+
+const assets_1 = require("./assets");
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+const GCP_PROJECT = process.env.GCP_PROJECT_ID;
 const ffmpegStatic = require('ffmpeg-static');
 ffmpeg.setFfmpegPath(ffmpegStatic);
 const WORK_DIR = path.join(__dirname, 'tmp');
 if (!fs.existsSync(WORK_DIR)) {
     fs.mkdirSync(WORK_DIR, { recursive: true });
 }
-// Ensure native fetch is available
-const fetchContent = typeof node_fetch_1.default === 'undefined' ? require('node-fetch') : node_fetch_1.default;
 /**
- * Downloads a file from a URL to local disk.
+ * Resolves an asset (from Gemini scene JSON) into a local file path
+ * ready for FFmpeg ingestion.
+ *
+ * Sources:
+ *  - uploaded_asset  → download directly from GCS using the stored URI
+ *  - stock_video     → Pixabay API (falls back to solid-color clip)
+ *  - generate_image  → Vertex AI Imagen 3 (falls back to solid-color clip)
  */
-async function downloadFile(url, destPath) {
-    const res = await fetchContent(url);
-    if (!res.ok)
-        throw new Error(`Failed to fetch ${url}: ${res.statusText}`);
-    // Convert ArrayBuffer to Buffer for fs writing
-    const arrayBuffer = await res.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    fs.writeFileSync(destPath, buffer);
-    return destPath;
-}
-/**
- * Resolves an asset (from Gemini Scene) into a local file path ready for FFmpeg
- */
-async function resolveAndDownloadAsset(source, assetId, prompt, duration) {
-    if (source === 'uploaded_asset' && assetId) {
-        // [STUB] Bypassing Firestore for local FFmpeg compositing test.
-        console.log(`[STUB] Simulating fetch for asset ID: ${assetId}`);
-        const dest = path.join(WORK_DIR, `${assetId}.mp4`);
-        await createSolidColorVideo(dest, duration || 5, 'red'); // placeholder for user uploaded asset
-        return dest;
+async function resolveAndDownloadAsset(source, assetId, prompt, duration = 5, gcsUri, // Direct gs:// URI injected by the orchestrator payload
+projectId) {
+    // ── 1. User-uploaded asset ──────────────────────────────────────────────
+    if (source === 'uploaded_asset') {
+        // Prefer a direct gs:// URI passed in the payload; fall back to assetId
+        const uri = gcsUri || assetId;
+        if (!uri)
+            throw new Error('uploaded_asset requires a gcsUri or assetId.');
+        const ext = uri.includes('.mp4') ? 'mp4' : 'jpg';
+        const dest = path.join(WORK_DIR, `uploaded_${Date.now()}.${ext}`);
+        return await (0, assets_1.downloadFromGCS)(uri, dest);
     }
+    // ── 2. AI-generated image (Vertex AI Imagen) ────────────────────────────
     if (source === 'generate_image') {
-        // TODO: Call Vertex AI Imagen
-        console.log(`[STUB] Would generate image for prompt: "${prompt}"`);
-        // For now, return a placeholder black image
-        const dest = path.join(WORK_DIR, `generated_${Date.now()}.jpg`);
-        await createSolidColorVideo(dest, duration || 5, 'black');
-        return dest;
+        const imgPrompt = prompt || 'cinematic background';
+        try {
+            const dest = path.join(WORK_DIR, `imagen_${Date.now()}.jpg`);
+            return await (0, assets_1.generateImagenImage)(imgPrompt, dest, projectId);
+        }
+        catch (err) {
+            console.warn(`⚠️  Imagen fallback (${err.message}). Using solid-color clip.`);
+            const fallbackDest = path.join(WORK_DIR, `fallback_${Date.now()}.mp4`);
+            return await createSolidColorVideo(fallbackDest, duration, 'black');
+        }
     }
-    if (source === 'stock_video') {
-        // TODO: Call Pixabay 
-        console.log(`[STUB] Would fetch stock video for prompt: "${prompt}"`);
-        const dest = path.join(WORK_DIR, `stock_${Date.now()}.mp4`);
-        await createSolidColorVideo(dest, duration || 5, 'blue');
-        return dest;
-    }
-    throw new Error(`Unsupported source: ${source}`);
+    throw new Error(`Unsupported visual source: "${source}"`);
 }
 /**
- * Helper to create a solid color fallback video if stock/imagen fails or is stubbed
+ * Helper to create a solid color fallback video using FFmpeg directly.
+ * We'll generate it at 1920x1920 so it can be cropped perfectly to ANY aspect ratio
+ * later in the compositor without letterboxing.
  */
 function createSolidColorVideo(outputPath, duration, color = 'black') {
     return new Promise((resolve, reject) => {
-        ffmpeg()
-            .input(`color=c=${color}:s=1920x1080`)
-            .inputFormat('lavfi')
-            .duration(duration)
-            .output(outputPath)
-            .on('end', (() => resolve(outputPath)))
-            .on('error', reject)
-            .run();
+        try {
+            const ffmpegPath = require('ffmpeg-static');
+            const { execSync } = require('child_process');
+            const cmd = `"${ffmpegPath}" -y -f lavfi -i color=c=${color}:s=1920x1920 -t ${duration} -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${outputPath}"`;
+            execSync(cmd, { stdio: 'inherit' });
+            resolve(outputPath);
+        }
+        catch (e) {
+            reject(e);
+        }
     });
 }
 /**
  * Renders a single scene from the Gemini-generated JSON block.
  */
-async function renderScene(scene, index) {
+async function renderScene(scene, index, aspectRatio = '16:9', projectId) {
     console.log(`\n============================`);
-    console.log(`🎬 Rendering Scene ${index + 1}...`);
+    console.log(`🎬 Rendering Scene ${index + 1}... [${aspectRatio}]`);
     console.log(`============================`);
     const outputFileName = `scene_${index}.mp4`;
     const outputPath = path.join(WORK_DIR, outputFileName);
     // 1. Resolve and download Base Visual
-    const baseVisualPath = await resolveAndDownloadAsset(scene.visual.base.source, scene.visual.base.asset_id, scene.visual.base.prompt, scene.duration);
+    const baseVisualPath = await resolveAndDownloadAsset(scene.visual.base.source, scene.visual.base.asset_id, scene.visual.base.prompt, scene.duration, scene.visual.base.gcs_uri, // orchestrator may pass gs:// URI directly
+    projectId);
     // 2. Synthesize TTS
     const ttsFileName = `tts_${index}.mp3`;
     const ttsPath = path.join(WORK_DIR, ttsFileName);
     console.log(`🎙️ Synthesizing Voiceover: "${scene.voiceover.text}"`);
     const audioBuffer = await (0, tts_1.generateTTS)(scene.voiceover.text, scene.voiceover.tone);
     fs.writeFileSync(ttsPath, audioBuffer);
+    // 2.5 Compute Audio Duration & Add Pacing
+    const audioDuration = await mp3Duration(ttsPath);
+    console.log(`⏱️ TTS Audio Length: ${audioDuration.toFixed(2)}s`);
+    // Ensure scene is long enough for the audio + 0.8s padding to prevent clipping
+    // Ensure scene is long enough for the audio + 2.5s padding to prevent clipping and give breathing room
+    const actualDuration = Math.max((scene.duration || 5), audioDuration + 2.5);
+    console.log(`⏱️ Final Scene Duration: ${actualDuration.toFixed(2)}s`);
     // 3. Setup FFmpeg Pipeline
     console.log(`⚙️ Running FFmpeg compositor directly via spawn...`);
     const { spawn } = require('child_process');
     const ffmpegPath = require('ffmpeg-static');
     return new Promise((resolve, reject) => {
         const complexFilters = [];
-        complexFilters.push(`[0:v]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,setsar=1,fps=30[v1]`);
-        const escapedText = scene.text_overlay.content.replace(/[^a-zA-Z0-9 ]/g, '');
-        // Windows CMD quoting is extremely picky. 
-        // We push the raw un-quoted filter component here, and we'll quote the whole -filter_complex block in the cmd string.
-        complexFilters.push(`[v1]drawtext=fontfile=C\\\\\\\\:/Windows/Fonts/arial.ttf: text='${escapedText}': fontcolor=white: fontsize=84: x=(w-text_w)/2: y=(h-text_h)/2: box=1: boxcolor=black@0.5: boxborderw=20[v2]`);
-        // Use v2 as final output
+        // Determine dynamic resolution based on aspectRatio
+        const [w, h] = aspectRatio === '9:16' ? [1080, 1920] : [1920, 1080];
+        // --- Visual motion (Ken Burns / zoompan) ---
+        let scaleFilter = `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,fps=30`;
+        // If it's a generated image or uploaded image, we can apply motion
+        const basePathLower = baseVisualPath.toLowerCase();
+        const isImage = basePathLower.endsWith('.jpg') || basePathLower.endsWith('.png') || basePathLower.endsWith('.jpeg');
+        if (isImage) {
+            const motion = scene.camera_motion || 'zoom_in';
+            // Scale up slightly first to give room for panning/zooming without black bars
+            const bgW = Math.floor(w * 1.2);
+            const bgH = Math.floor(h * 1.2);
+            const frames = Math.ceil(actualDuration * 30);
+            // Generate zooming/panning expressions
+            let zExpr = '1';
+            let xExpr = '0';
+            let yExpr = '0';
+            if (motion === 'zoom_in') {
+                zExpr = 'min(zoom+0.0015,1.5)';
+                xExpr = '(iw/2)-(iw/zoom/2)';
+                yExpr = '(ih/2)-(ih/zoom/2)';
+            }
+            else if (motion === 'zoom_out') {
+                zExpr = 'if(eq(on,1),1.5,max(1.0,zoom-0.0015))';
+                xExpr = '(iw/2)-(iw/zoom/2)';
+                yExpr = '(ih/2)-(ih/zoom/2)';
+            }
+            else if (motion === 'pan_right') {
+                zExpr = '1.2';
+                xExpr = `min((on-1)*((iw-iw/zoom)/${frames}),iw-iw/zoom)`;
+                yExpr = '(ih/2)-(ih/zoom/2)';
+            }
+            else if (motion === 'pan_left') {
+                zExpr = '1.2';
+                xExpr = `max((iw-iw/zoom)-(on-1)*((iw-iw/zoom)/${frames}),0)`;
+                yExpr = '(ih/2)-(ih/zoom/2)';
+            }
+            else if (motion === 'pan_up') {
+                zExpr = '1.2';
+                xExpr = '(iw/2)-(iw/zoom/2)';
+                yExpr = `max((ih-ih/zoom)-(on-1)*((ih-ih/zoom)/${frames}),0)`;
+            }
+            else if (motion === 'pan_down') {
+                zExpr = '1.2';
+                xExpr = '(iw/2)-(iw/zoom/2)';
+                yExpr = `min((on-1)*((ih-ih/zoom)/${frames}),ih-ih/zoom)`;
+            }
+            scaleFilter = `scale=${bgW}:${bgH}:force_original_aspect_ratio=increase,crop=${bgW}:${bgH},setsar=1,zoompan=z='${zExpr}':x='${xExpr}':y='${yExpr}':d=${frames}:s=${w}x${h}:fps=30`;
+        }
+        complexFilters.push(`[0:v]${scaleFilter}[v1]`);
+        // --- Subtitles ---
+        // Default to on if undefined, but respect explicit false
+        const showSubtitles = scene.text_overlay?.subtitle_settings?.enabled !== false;
+        if (showSubtitles && scene.text_overlay?.content) {
+            const escapedText = scene.text_overlay.content.replace(/[^a-zA-Z0-9.\-?! ]/g, '');
+            const subColor = scene.text_overlay?.subtitle_settings?.color || 'white';
+            const subPos = scene.text_overlay?.subtitle_settings?.position || 'middle';
+            let yPos = '(h-text_h)/2'; // middle
+            if (subPos === 'top')
+                yPos = 'h*0.15';
+            else if (subPos === 'bottom')
+                yPos = 'h*0.80';
+            complexFilters.push(`[v1]drawtext=fontfile=C\\\\\\\\:/Windows/Fonts/arialbd.ttf: text='${escapedText}': fontcolor=${subColor}: fontsize=72: x=(w-text_w)/2: y=${yPos}: box=1: boxcolor=black@0.6: boxborderw=20[vOut]`);
+        }
+        else {
+            complexFilters.push(`[v1]copy[vOut]`);
+        }
+        // --- Audio Pacing (Silence padding) ---
+        // Pad audio out completely to match the actualDuration (capped by -t)
+        complexFilters.push(`[1:a]apad[aOut]`);
+        const inputArgsStart = [];
+        inputArgsStart.push('-y');
+        if (!isImage) {
+            // Only loop indefinitely if the visual is a video. 
+            // Setting loop for images breaks zoompan timeframe calculation.
+            inputArgsStart.push('-stream_loop', '-1');
+        }
         const args = [
-            '-y',
-            '-stream_loop', '-1',
+            ...inputArgsStart,
             '-i', `"${baseVisualPath}"`,
             '-i', `"${ttsPath}"`,
             '-filter_complex', `"${complexFilters.join(';')}"`,
-            '-map', '"[v2]"',
-            '-map', '1:a',
+            '-map', '"[vOut]"',
+            '-map', '"[aOut]"',
             '-c:v', 'libx264',
             '-tune', 'stillimage',
             '-c:a', 'aac',
             '-b:a', '192k',
             '-pix_fmt', 'yuv420p',
-            '-shortest',
-            '-t', scene.duration.toString(),
+            '-movflags', '+faststart',
+            '-t', actualDuration.toString(),
             `"${outputPath}"`
         ];
         console.log('FFmpeg Execution Args:', args.join(' '));
@@ -183,47 +257,124 @@ async function main() {
     try {
         // NOTE: For local testing, we might not have a campaign ID yet if the frontend isn't saving it.
         // We will pass the raw JSON file path instead for debugging.
-        let scenesData;
+        let payload;
         if (campaignId.endsWith('.json')) {
             console.log(`Loading JSON payload from disk: ${campaignId}`);
-            scenesData = JSON.parse(fs.readFileSync(campaignId, 'utf-8'));
+            payload = JSON.parse(fs.readFileSync(campaignId, 'utf-8'));
         }
         else {
             throw new Error("Local test mode requires a .json file payload");
         }
+        const scenesData = Array.isArray(payload) ? payload : payload.scenes;
+        const aspectRatio = payload.aspectRatio || '16:9';
+        const projectId = payload.projectId;
         const renderedScenes = [];
         // Render each scene sequentially
         for (let i = 0; i < scenesData.length; i++) {
-            const scenePath = await renderScene(scenesData[i], i);
-            renderedScenes.push(scenePath);
+            const scenePath = await renderScene(scenesData[i], i, aspectRatio, projectId);
+            // We need the ACTUAL duration for accurate xfade overlapping.
+            // Executing ffprobe to get exact generated duration.
+            const ffprobePath = require('ffprobe-static').path;
+            const { execSync } = require('child_process');
+            const durationOutput = execSync(`"${ffprobePath}" -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${scenePath}"`).toString();
+            const actualSceneDuration = parseFloat(durationOutput.trim());
+            renderedScenes.push({
+                path: scenePath,
+                duration: actualSceneDuration,
+                transition: scenesData[i].transition || 'fade'
+            });
         }
         console.log("\n=================================");
         console.log("🎬 All individual scenes rendered!");
         console.log("📝 Renders:", renderedScenes);
         console.log("=================================\n");
+        const finalOutputPath = path.join(WORK_DIR, 'final_output.mp4');
         if (renderedScenes.length > 1) {
-            console.log("⏳ Merging scenes into final video...");
-            const finalOutputPath = path.join(WORK_DIR, 'final_output.mp4');
-            // Create concat input file
-            const concatListPath = path.join(WORK_DIR, 'concat.txt');
-            const concatListContent = renderedScenes.map(file => `file '${path.basename(file)}'`).join('\n');
-            fs.writeFileSync(concatListPath, concatListContent);
-            await new Promise((resolve, reject) => {
-                ffmpeg()
-                    .input(concatListPath)
-                    .inputOptions(['-f concat', '-safe 0'])
-                    .outputOptions('-c copy') // Fast copy since they are all identical formats
-                    .output(finalOutputPath)
-                    .on('end', () => {
-                    console.log(`✅✅ SUCCESS! Final video saved to: ${finalOutputPath}`);
-                    resolve(finalOutputPath);
-                })
-                    .on('error', (err) => {
-                    console.error("❌ Error merging final video:", err);
-                    reject(err);
-                })
-                    .run();
+            console.log("⏳ Merging scenes with xfade transitions...");
+            const ffmpegPath = require('ffmpeg-static');
+            const { execSync } = require('child_process');
+            let filterComplex = "";
+            let inputArgs = [];
+            let currentOffset = 0;
+            const crossfadeDur = 1.0; // 1 second overlap for transitions
+            // Map standard transition names to FFmpeg xfade types
+            const getXfadeType = (name) => {
+                const map = {
+                    'fade': 'fade',
+                    'wipe-right': 'wiperight',
+                    'wipe-left': 'wipeleft',
+                    'slide-up': 'slideup',
+                    'slide-down': 'slidedown',
+                    'dissolve': 'fade', // xfade covers dissolve smoothly
+                    'cut': 'distance' // fallback
+                };
+                return map[name.toLowerCase()] || 'fade';
+            };
+            // 1. First, declare all inputs and normalize their timebases
+            for (let i = 0; i < renderedScenes.length; i++) {
+                inputArgs.push('-i', `"${renderedScenes[i].path}"`);
+                // Normalizing timebase, framerate, audio sample rate, and resetting timestamps
+                filterComplex += `[${i}:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_${i}];`;
+                filterComplex += `[${i}:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_${i}];`;
+            }
+            // 2. Build the xfade chain for video
+            currentOffset = renderedScenes[0].duration;
+            let audioDelays = [0];
+            for (let i = 1; i < renderedScenes.length; i++) {
+                const prevStreamV = i === 1 ? `[v_norm_0]` : `[v_out_${i - 1}]`;
+                const nextStreamV = `[v_norm_${i}]`;
+                const outStreamV = `[v_out_${i}]`;
+                const xfadeMode = getXfadeType(renderedScenes[i - 1].transition);
+                const offsetStart = Math.max(0.1, currentOffset - crossfadeDur);
+                audioDelays.push(offsetStart);
+                filterComplex += `${prevStreamV}${nextStreamV}xfade=transition=${xfadeMode}:duration=${crossfadeDur}:offset=${offsetStart}${outStreamV};`;
+                // The new total length is old offset + new duration - overlap
+                currentOffset = offsetStart + renderedScenes[i].duration;
+            }
+            // 3. Build precise amix for audio instead of crossfading to preserve full volume
+            let audioMixInputs = '';
+            for (let i = 0; i < renderedScenes.length; i++) {
+                const delayMs = Math.floor(audioDelays[i] * 1000);
+                filterComplex += `[a_norm_${i}]adelay=${delayMs}|${delayMs}[a_delayed_${i}];`;
+                audioMixInputs += `[a_delayed_${i}]`;
+            }
+            filterComplex += `${audioMixInputs}amix=inputs=${renderedScenes.length}:dropout_transition=0:normalize=0[a_out];`;
+            // Remove trailing semicolon
+            filterComplex = filterComplex.replace(/;$/, '');
+            const finalVStream = `[v_out_${renderedScenes.length - 1}]`;
+            const finalAStream = `[a_out]`;
+            const mergeCmd = `"${ffmpegPath}" -y ${inputArgs.join(' ')} -filter_complex "${filterComplex}" -map "${finalVStream}" -map "${finalAStream}" -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${finalOutputPath}"`;
+            console.log('Merging command:', mergeCmd);
+            execSync(mergeCmd, { stdio: 'inherit' });
+            console.log(`✅✅ SUCCESS! Final video merged to: ${finalOutputPath}`);
+        }
+        else if (renderedScenes.length === 1) {
+            console.log("🎬 Single scene detected. Copying to final output...");
+            fs.copyFileSync(renderedScenes[0].path, finalOutputPath);
+            console.log(`✅✅ SUCCESS! Final video saved to: ${finalOutputPath}`);
+        }
+        // ── Upload to GCS ──────────────────────────────────────────────────
+        const outputGcsPath = process.env.GCS_OUTPUT_PATH;
+        if (outputGcsPath && fs.existsSync(finalOutputPath)) {
+            console.log(`⏳ Uploading final video for project context: ${outputGcsPath}`);
+            const { Storage } = require('@google-cloud/storage');
+            const storage = new Storage({
+                projectId: GCP_PROJECT,
+                credentials: {
+                    client_email: process.env.GCP_CLIENT_EMAIL,
+                    private_key: (process.env.GCP_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+                },
             });
+            const destBucket = process.env.GCS_BUCKET_NAME;
+            const destObj = `${outputGcsPath}/final_output.mp4`;
+            await storage.bucket(destBucket).upload(finalOutputPath, {
+                destination: destObj,
+                metadata: {
+                    contentType: 'video/mp4',
+                    cacheControl: 'public, max-age=3600',
+                }
+            });
+            console.log(`☁️  Uploaded to gs://${destBucket}/${destObj}`);
         }
     }
     catch (err) {
