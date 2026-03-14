@@ -9,35 +9,39 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/gcp/firestore';
-import type { ConnectorId, StoredConnector } from '@/lib/connectors/types';
+import { db, COLLECTIONS } from '@/lib/gcp/firestore';
+import { OWNER_ID } from '@/lib/owner';
+import type { ConnectorId, StoredOwnerConnector } from '@/lib/connectors/types';
 
 const CONNECTORS_COLLECTION = 'connectors';
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { projectId, connectorId, credentials } = body as {
-            projectId: string;
+        const { connectorId, credentials, accountName } = body as {
             connectorId: ConnectorId;
             credentials: Record<string, string>;
+            accountName?: string;
         };
 
-        if (!projectId || !connectorId || !credentials) {
-            return NextResponse.json({ error: 'projectId, connectorId, and credentials are required.' }, { status: 400 });
+        if (!connectorId || !credentials) {
+            return NextResponse.json({ error: 'connectorId and credentials are required.' }, { status: 400 });
         }
 
-        const doc: StoredConnector = {
+        const doc: StoredOwnerConnector = {
             id: connectorId,
-            projectId,
+            ownerId: OWNER_ID,
             credentials,
+            accountName: accountName || '',
             connectedAt: new Date().toISOString(),
+            usageCount: 0,
+            lastUsedAt: '',
         };
 
-        // Store under projects/{projectId}/connectors/{connectorId}
+        // Store under owners/{ownerId}/connectors/{connectorId}
         await db
-            .collection('projects')
-            .doc(projectId)
+            .collection(COLLECTIONS.OWNERS)
+            .doc(OWNER_ID)
             .collection(CONNECTORS_COLLECTION)
             .doc(connectorId)
             .set(doc);
@@ -51,23 +55,23 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const projectId = searchParams.get('projectId');
-
-        if (!projectId) {
-            return NextResponse.json({ error: 'projectId query param is required.' }, { status: 400 });
-        }
-
+        // Now returns global user-level connectors
         const snap = await db
-            .collection('projects')
-            .doc(projectId)
+            .collection(COLLECTIONS.OWNERS)
+            .doc(OWNER_ID)
             .collection(CONNECTORS_COLLECTION)
             .get();
 
         const connectors = snap.docs.map((d) => {
-            const data = d.data() as StoredConnector;
-            // Strip actual credentials from the response — only send metadata
-            return { id: data.id, connectedAt: data.connectedAt };
+            const data = d.data() as StoredOwnerConnector;
+            // Strip actual credentials from the response — only send metadata & stats
+            return { 
+                id: data.id, 
+                connectedAt: data.connectedAt,
+                accountName: data.accountName,
+                usageCount: data.usageCount || 0,
+                lastUsedAt: data.lastUsedAt || ''
+            };
         });
 
         return NextResponse.json({ connectors });
@@ -80,16 +84,15 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
-        const projectId = searchParams.get('projectId');
         const connectorId = searchParams.get('connectorId') as ConnectorId;
 
-        if (!projectId || !connectorId) {
-            return NextResponse.json({ error: 'projectId and connectorId are required.' }, { status: 400 });
+        if (!connectorId) {
+            return NextResponse.json({ error: 'connectorId is required.' }, { status: 400 });
         }
 
         await db
-            .collection('projects')
-            .doc(projectId)
+            .collection(COLLECTIONS.OWNERS)
+            .doc(OWNER_ID)
             .collection(CONNECTORS_COLLECTION)
             .doc(connectorId)
             .delete();

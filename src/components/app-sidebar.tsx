@@ -14,6 +14,8 @@ import {
     Zap,
     Sparkles,
     GitCompareArrows,
+    Rocket,
+    MessageCircle,
 } from "lucide-react";
 import {
     Sidebar,
@@ -38,12 +40,14 @@ const mainNav = [
 const createNav = [
     { title: "Video Studio", href: "/studio/video", icon: Video },
     { title: "Blog Engine", href: "/studio/blog", icon: FileText },
+    { title: "Social Studio", href: "/studio/social", icon: MessageCircle },
     { title: "A/B Variants", href: "/studio/variants", icon: GitCompareArrows },
     { title: "Live Mode", href: "/studio/live", icon: Zap },
 ];
 
 const manageNav = [
     { title: "Connectors", href: "/connectors", icon: Share2 },
+    { title: "Autopilot", href: "/studio/settings", icon: Rocket },
     { title: "Analytics", href: "/analytics", icon: BarChart3 },
     { title: "Settings", href: "/settings", icon: Settings },
 ];

@@ -31,4 +31,6 @@ export const COLLECTIONS = {
     PROJECTS: "projects",
     ASSETS: "assets",
     CAMPAIGNS: "campaigns",
+    OWNERS: "owners",
+    USAGE_LOGS: "usageLogs",
 };

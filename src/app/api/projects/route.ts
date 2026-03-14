@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, COLLECTIONS } from "@/lib/gcp/firestore";
+import { OWNER_ID } from "@/lib/owner";
 
 export async function POST(req: Request) {
     try {
@@ -15,6 +16,7 @@ export async function POST(req: Request) {
 
         const projectData = {
             ...payload,
+            ownerId: OWNER_ID, // Inject unified ownerId
             createdAt: new Date().toISOString(),
             status: "draft"
         };
@@ -35,11 +37,18 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
     try {
-        const snapshot = await db.collection(COLLECTIONS.PROJECTS).orderBy('createdAt', 'desc').get();
+        // Filter by OWNER_ID for future-proof multi-user support
+        // We omit .orderBy('createdAt', 'desc') to avoid requiring a composite index in Firestore
+        const snapshot = await db.collection(COLLECTIONS.PROJECTS)
+            .where('ownerId', '==', OWNER_ID)
+            .get();
+            
         const projects = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        }));
+        })).sort((a: any, b: any) => {
+            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        });
 
         return NextResponse.json({ projects });
     } catch (error: any) {

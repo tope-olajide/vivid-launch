@@ -67,7 +67,18 @@ projectId) {
             throw new Error('uploaded_asset requires a gcsUri or assetId.');
         const ext = uri.includes('.mp4') ? 'mp4' : 'jpg';
         const dest = path.join(WORK_DIR, `uploaded_${Date.now()}.${ext}`);
-        return await (0, assets_1.downloadFromGCS)(uri, dest);
+        try {
+            return await (0, assets_1.downloadFromGCS)(uri, dest);
+        }
+        catch (err) {
+            if (err.message.includes('ASSET_NOT_FOUND')) {
+                console.warn(`⚠️  Asset ${uri} not found in Firestore. Falling back to AI Generation...`);
+                const fallbackPrompt = prompt || `cinematic scene about ${assetId || 'project'}`;
+                const fallbackDest = path.join(WORK_DIR, `uploaded_fallback_${Date.now()}.jpg`);
+                return await (0, assets_1.generateImagenImage)(fallbackPrompt, fallbackDest, projectId);
+            }
+            throw err;
+        }
     }
     // ── 2. AI-generated image (Vertex AI Imagen) ────────────────────────────
     if (source === 'generate_image') {

@@ -35,6 +35,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 const templates = [
     {
@@ -109,6 +110,15 @@ export default function NewProjectPage() {
     const [audienceLevel, setAudienceLevel] = useState("intermediate");
     const [uploadedFiles, setUploadedFiles] = useState<{ file: File; name: string; type: string }[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Smart Scraper State
+    const [useSmartScraper, setUseSmartScraper] = useState(true);
+    const [scrapeScope, setScrapeScope] = useState("full-site");
+    const [scrapePath, setScrapePath] = useState("");
+    const [extractImages, setExtractImages] = useState(true);
+    const [extractTestimonials, setExtractTestimonials] = useState(false);
+    const [scrapeDepth, setScrapeDepth] = useState([1]);
+
     const router = useRouter();
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,6 +163,14 @@ export default function NewProjectPage() {
                         formality: formality[0],
                         emojiUsage: emojiUsage[0],
                         audienceLevel
+                    },
+                    scraperSettings: {
+                        enabled: useSmartScraper,
+                        scope: scrapeScope,
+                        path: scrapePath,
+                        extractImages,
+                        extractTestimonials,
+                        depth: scrapeDepth[0]
                     }
                 })
             });
@@ -337,6 +355,100 @@ export default function NewProjectPage() {
                             <p className="text-xs text-muted-foreground">
                                 We&apos;ll scrape your website to understand your product and extract images
                             </p>
+
+                            {/* Smart Scraper Section */}
+                            <div className="mt-4 pt-4 border-t border-border/50">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label className="text-base flex items-center gap-2">
+                                            <Sparkles className="h-4 w-4 text-primary" />
+                                            Smart Scraper
+                                        </Label>
+                                        <p className="text-sm text-muted-foreground">
+                                            Let VividLaunch learn your brand voice and grab assets automatically.
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={useSmartScraper}
+                                        onCheckedChange={setUseSmartScraper}
+                                    />
+                                </div>
+
+                                {useSmartScraper && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        className="mt-6 space-y-6 overflow-hidden"
+                                    >
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label>Target Scope</Label>
+                                                <Select value={scrapeScope} onValueChange={setScrapeScope}>
+                                                    <SelectTrigger>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="full-site">Full Site</SelectItem>
+                                                        <SelectItem value="landing-page">Landing Page Only</SelectItem>
+                                                        <SelectItem value="path-only">Specific Path Only</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            {scrapeScope === "path-only" && (
+                                                <div className="space-y-2">
+                                                    <Label>Relative Path</Label>
+                                                    <Input
+                                                        placeholder="e.g. /about or /features/vivid-auto"
+                                                        value={scrapePath}
+                                                        onChange={(e) => setScrapePath(e.target.value)}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <Label>Asset & Data Extraction</Label>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setExtractImages(!extractImages)}>
+                                                    <Switch checked={extractImages} onCheckedChange={setExtractImages} />
+                                                    <div className="grid gap-0.5">
+                                                        <span className="text-sm font-medium">Extract Images</span>
+                                                        <span className="text-xs text-muted-foreground">Logos & Product Shots</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setExtractTestimonials(!extractTestimonials)}>
+                                                    <Switch checked={extractTestimonials} onCheckedChange={setExtractTestimonials} />
+                                                    <div className="grid gap-0.5">
+                                                        <span className="text-sm font-medium">Extract Testimonials</span>
+                                                        <span className="text-xs text-muted-foreground">For Social Proof</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-sm font-medium">Scrape Depth</Label>
+                                                <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
+                                                    {scrapeDepth[0]} click{scrapeDepth[0] > 1 ? "s" : ""} deep
+                                                </span>
+                                            </div>
+                                            <Slider
+                                                value={scrapeDepth}
+                                                onValueChange={setScrapeDepth}
+                                                min={1}
+                                                max={3}
+                                                step={1}
+                                                className="w-full"
+                                            />
+                                            <p className="text-[10px] text-muted-foreground">
+                                                Limit depth to avoid wandering into support or help center pages.
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="audience" className="flex items-center gap-2">
