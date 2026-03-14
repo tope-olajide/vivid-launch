@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     Sparkles, Send, Loader2, Twitter, Linkedin, Instagram, 
@@ -108,8 +108,8 @@ const PlatformMockup = ({ platform, content, accountName = "Founder" }: { platfo
 };
 
 export default function SocialStudioPage() {
-    const searchParams = useSearchParams();
-    const projectId = searchParams.get("projectId");
+    const params = useParams();
+    const projectId = params.projectId as string;
     const [mode, setMode] = useState<"single" | "pack" | "campaign">("single");
     const [platform, setPlatform] = useState<string>("twitter");
     const [prompt, setPrompt] = useState("");
@@ -148,7 +148,6 @@ export default function SocialStudioPage() {
             if (!res.ok) throw new Error("Generation failed");
 
             if (mode === 'single') {
-                // Use streamText style reading
                 const reader = res.body?.getReader();
                 const decoder = new TextDecoder();
                 if (!reader) return;
@@ -157,7 +156,6 @@ export default function SocialStudioPage() {
                     const { done, value } = await reader.read();
                     if (done) break;
                     const chunk = decoder.decode(value);
-                    // AI SDK stream format usually starts with 0: for text
                     const text = chunk.split('\n')
                         .filter(l => l.startsWith('0:'))
                         .map(l => JSON.parse(l.substring(2)))
@@ -165,9 +163,6 @@ export default function SocialStudioPage() {
                     setContent(prev => prev + text);
                 }
             } else {
-                // Handle streamObject (json stream)
-                // For simplicity in the MVP, we assume non-streaming JSON for Pack/Campaign 
-                // OR we just use regular POST if we want faster iteration
                 const data = await res.json();
                 if (data.posts) setGeneratedPosts(data.posts);
                 toast.success("Content Pack generated!");
@@ -181,7 +176,7 @@ export default function SocialStudioPage() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-background">
+        <div className="flex h-full overflow-hidden bg-background">
             {/* Left Column: AI Configuration */}
             <div className="w-[400px] border-r border-border/40 p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar bg-zinc-950/20">
                 <div className="space-y-1">

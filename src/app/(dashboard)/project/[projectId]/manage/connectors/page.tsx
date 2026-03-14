@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
     Check, Plus, Trash2, Loader2, ExternalLink,
@@ -144,8 +144,8 @@ const item = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } };
 // ─────────────────────────────────────────────────────────────
 
 export default function ConnectorsPage() {
-    const searchParams = useSearchParams();
-    const projectId = searchParams.get("projectId");
+    const params = useParams();
+    const projectId = params.projectId as string;
 
     const [connectedIds, setConnectedIds] = useState<Set<string>>(new Set());
     const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
@@ -173,7 +173,7 @@ export default function ConnectorsPage() {
 
     const handleSave = async () => {
         if (!projectId || !selectedConnector) {
-            toast.error("Select a project first (add ?projectId=xxx to the URL).");
+            toast.error("Invalid project context.");
             return;
         }
         // Validate all fields are filled
@@ -225,28 +225,26 @@ export default function ConnectorsPage() {
     };
 
     return (
-        <>
+        <div className="bg-zinc-950/20 min-h-full">
             <motion.div
-                className="p-6 max-w-4xl mx-auto space-y-8"
+                className="p-8 max-w-4xl mx-auto space-y-8"
                 variants={container}
                 initial="hidden"
                 animate="show"
             >
                 <motion.div variants={item}>
-                    <h1 className="text-2xl font-bold tracking-tight">Connectors</h1>
-                    <p className="text-muted-foreground mt-1">
-                        Connect your platforms to auto-publish content everywhere
+                    <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
+                        <ExternalLink className="h-8 w-8 text-violet-500" />
+                        Platform Connectors
+                    </h1>
+                    <p className="text-muted-foreground mt-1 italic">
+                        Connect your platforms to enable autonomous multi-channel distribution.
                     </p>
-                    {!projectId && (
-                        <p className="mt-2 text-xs text-amber-500">
-                            ⚠ No project selected — add <code className="bg-muted px-1 rounded">?projectId=your-id</code> to the URL to save connections.
-                        </p>
-                    )}
                 </motion.div>
 
                 {CONNECTORS.map((group) => (
-                    <motion.div key={group.category} variants={item} className="space-y-3">
-                        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                    <motion.div key={group.category} variants={item} className="space-y-4">
+                        <h2 className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] pl-1">
                             {group.category}
                         </h2>
                         <div className="grid gap-3">
@@ -256,43 +254,43 @@ export default function ConnectorsPage() {
                                 return (
                                     <Card
                                         key={connector.id}
-                                        className="border-border/50 bg-card/50 backdrop-blur-sm hover:border-border transition-colors"
+                                        className="border-border/10 bg-card/40 backdrop-blur-xl hover:border-violet-500/20 transition-all group lg:p-2"
                                     >
                                         <CardContent className="p-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-lg">
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-900 text-xl shadow-xl group-hover:scale-110 transition-transform">
                                                     {connector.icon}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-medium text-sm">{connector.name}</h3>
-                                                    <p className="text-xs text-muted-foreground">{connector.description}</p>
+                                                    <h3 className="font-bold text-sm tracking-tight">{connector.name}</h3>
+                                                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{connector.description}</p>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-3">
                                                 {isConnected ? (
-                                                    <>
-                                                        <Badge variant="secondary" className="gap-1 text-green-600 dark:text-green-400">
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant="outline" className="gap-1 bg-green-500/5 text-green-400 border-none text-[9px] font-bold uppercase tracking-widest">
                                                             <Check className="h-3 w-3" />
-                                                            Connected
+                                                            Active
                                                         </Badge>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                            className="h-9 w-9 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10"
                                                             onClick={() => handleDisconnect(connector.id)}
                                                             disabled={isLoadingThis}
                                                         >
                                                             {isLoadingThis
-                                                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                                                : <Trash2 className="h-3.5 w-3.5" />}
+                                                                ? <Loader2 className="h-4 w-4 animate-spin" />
+                                                                : <Trash2 className="h-4 w-4" />}
                                                         </Button>
-                                                    </>
+                                                    </div>
                                                 ) : (
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="gap-1.5"
+                                                        className="gap-2 border-border/50 hover:bg-white/5 h-9 px-4 rounded-xl text-xs font-bold uppercase tracking-tight"
                                                         onClick={() => openDialog(connector)}
                                                     >
                                                         <Plus className="h-3.5 w-3.5" />
@@ -311,33 +309,34 @@ export default function ConnectorsPage() {
 
             {/* Connect Dialog */}
             <Dialog open={!!selectedConnector} onOpenChange={(open) => !open && setSelectedConnector(null)}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md bg-zinc-950 border-border/10">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
+                        <DialogTitle className="flex items-center gap-2 text-xl font-black">
                             <span>{selectedConnector?.icon}</span>
                             Connect {selectedConnector?.name}
                         </DialogTitle>
-                        <DialogDescription>
-                            Enter your {selectedConnector?.name} credentials.{" "}
+                        <DialogDescription className="text-xs text-muted-foreground">
+                            Enter your {selectedConnector?.name} credentials to authorize VividLaunch.{" "}
                             <a
                                 href={selectedConnector?.docsUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-0.5 text-violet-400 hover:underline"
+                                className="inline-flex items-center gap-0.5 text-violet-400 hover:underline font-bold"
                             >
-                                Get API key <ExternalLink className="h-3 w-3" />
+                                Guide <ExternalLink className="h-3 w-3" />
                             </a>
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-3 py-2">
+                    <div className="space-y-4 py-4">
                         {selectedConnector?.fields.map((field) => (
-                            <div key={field.key} className="space-y-1.5">
-                                <Label htmlFor={field.key}>{field.label}</Label>
+                            <div key={field.key} className="space-y-2">
+                                <Label htmlFor={field.key} className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{field.label}</Label>
                                 <Input
                                     id={field.key}
-                                    type={field.type || "text"}
+                                    type={field.type || "password"}
                                     placeholder={field.placeholder}
+                                    className="bg-zinc-900/50 border-border/20 focus-visible:ring-violet-500 rounded-xl"
                                     value={formValues[field.key] || ""}
                                     onChange={(e) =>
                                         setFormValues((prev) => ({ ...prev, [field.key]: e.target.value }))
@@ -348,16 +347,16 @@ export default function ConnectorsPage() {
                     </div>
 
                     <DialogFooter>
-                        <Button variant="ghost" onClick={() => setSelectedConnector(null)}>
+                        <Button variant="ghost" onClick={() => setSelectedConnector(null)} className="rounded-xl">
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} disabled={isSaving}>
+                        <Button onClick={handleSave} disabled={isSaving} className="bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl px-6">
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save & Connect
+                            Secure Connect
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </>
+        </div>
     );
 }

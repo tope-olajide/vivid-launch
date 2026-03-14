@@ -1,23 +1,22 @@
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+"use client";
+
+import { usePathname } from "next/navigation";
+import { Navbar } from "@/components/navbar";
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const pathname = usePathname();
+    const isProjectWorkspace = pathname?.includes("/project/");
+
     return (
-        <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-                <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-6">
-                    <SidebarTrigger className="-ml-1" />
-                    <div className="flex-1" />
-                </header>
-                <main className="flex-1 overflow-auto">
-                    {children}
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+        <div className="flex min-h-screen flex-col">
+            {!isProjectWorkspace && <Navbar />}
+            <main className="flex-1 overflow-auto">
+                {children}
+            </main>
+        </div>
     );
 }

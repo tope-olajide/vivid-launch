@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { 
     Rocket, Share2, Sparkles, Calendar, Clock, Lock, 
     CheckCircle2, AlertCircle, Loader2, Save,
-    BarChart2, Zap, Palette, Hash, FileText
+    BarChart2, Zap, Palette, Hash, FileText, ChevronRight
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,8 @@ import { toast } from "sonner";
  * Manages project-specific integrations, automation "pulse", and brand identity.
  */
 export default function ProjectSettingsPage() {
-    const searchParams = useSearchParams();
-    const projectId = searchParams.get("projectId");
+    const params = useParams();
+    const projectId = params.projectId as string;
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     
@@ -43,13 +43,14 @@ export default function ProjectSettingsPage() {
 
     useEffect(() => {
         if (projectId) {
-            // Fetch existing project settings
-            // For MVP: Fetch from existing project doc
-            fetch(`/api/projects?id=${projectId}`)
+            fetch(`/api/projects`)
                 .then(res => res.json())
                 .then(data => {
-                    // map data to state
-                    setIsLoading(false);
+                    const project = data.projects.find((p: any) => p.id === projectId);
+                    if (project) {
+                        // In a real app, we'd map project.settings here
+                        setIsLoading(false);
+                    }
                 });
         }
     }, [projectId]);
@@ -57,7 +58,7 @@ export default function ProjectSettingsPage() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            // Save to Firestore
+            // Save to Firestore logic here
             toast.success("Settings saved successfully!");
         } catch (err) {
             toast.error("Failed to save settings");
@@ -68,7 +69,7 @@ export default function ProjectSettingsPage() {
 
     return (
         <motion.div 
-            className="p-6 max-w-5xl mx-auto space-y-8"
+            className="p-8 max-w-5xl mx-auto space-y-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
         >
@@ -162,7 +163,7 @@ export default function ProjectSettingsPage() {
                                         When enabled, Gemini will monitor your project and auto-generate content matching the pulse.
                                     </p>
                                 </div>
-                                <Switch checked={automationEnabled} onCheckedChange={setAutomationEnabled} aria-label="Enable Autopilot" />
+                                <Switch checked={automationEnabled} onCheckedChange={setAutomationEnabled} />
                             </CardContent>
                         </Card>
 
@@ -272,12 +273,6 @@ export default function ProjectSettingsPage() {
                                 value={brandVoice.customPrompt}
                                 onChange={(e) => setBrandVoice(prev => ({ ...prev, customPrompt: e.target.value }))}
                             />
-                            <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 flex items-start gap-3">
-                                <AlertCircle className="h-4 w-4 text-orange-400 shrink-0 mt-0.5" />
-                                <p className="text-[10px] text-orange-400/80 leading-relaxed italic">
-                                    Custom prompts override base project settings. Use this to fine-tune the "Cinematographer" and "Social Director" agents for this specific project.
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </TabsContent>
@@ -285,9 +280,3 @@ export default function ProjectSettingsPage() {
         </motion.div>
     );
 }
-
-const ChevronRight = ({ className }: { className?: string }) => (
-    <svg className={className} width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M6.1584 3.13597C5.96314 3.33123 5.96314 3.64781 6.1584 3.84307L9.81533 7.5L6.1584 11.1569C5.96314 11.3522 5.96314 11.6688 6.1584 11.864C6.35366 12.0593 6.67024 12.0593 6.8655 11.864L10.876 7.85355C11.0712 7.65829 11.0712 7.34171 10.876 7.14645L6.8655 3.13597C6.67024 2.94071 6.35366 2.94071 6.1584 3.13597Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
-    </svg>
-);
