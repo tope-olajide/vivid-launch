@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -62,8 +62,8 @@ const sceneBlockSchema = z.object({
 });
 
 function VideoStudioContent() {
-    const searchParams = useSearchParams();
-    const projectId = searchParams.get("projectId");
+    const params = useParams();
+    const projectId = params.projectId as string;
     const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
     const [useVeo, setUseVeo] = useState(false);
     const [isRendering, setIsRendering] = useState(false);
@@ -114,7 +114,7 @@ function VideoStudioContent() {
     });
 
     const handleGenerate = () => {
-        if (!projectId) { toast.error("No project selected."); return; }
+        if (!projectId) { toast.error("No project context."); return; }
         setVideoUrl(null);
         setLocalScenes([]);
         submit({ projectId, prompt: "Generate a high-impact promotional video storyboard.", useVeo });
@@ -192,7 +192,7 @@ function VideoStudioContent() {
     };
 
     const handleRender = async () => {
-        if (!projectId || !object?.scenes?.length) {
+        if (!projectId || !localScenes.length) {
             toast.error("Generate a storyboard first.");
             return;
         }
@@ -234,92 +234,88 @@ function VideoStudioContent() {
     const scenes = localScenes;
 
     return (
-        <motion.div
-            className="p-6 max-w-7xl mx-auto space-y-6"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-        >
+        <div className="p-8 max-w-7xl mx-auto space-y-8">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Video Studio</h1>
-                    <p className="text-muted-foreground mt-1">
-                        Generate promo videos powered by Gemini&apos;s Creative Director
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
+                        <Video className="h-8 w-8 text-violet-500" />
+                        Video Studio
+                    </h1>
+                    <p className="text-muted-foreground italic text-sm">
+                        Generate high-impact cinematic promo videos powered by Gemini.
                     </p>
                 </div>
-                <Badge variant="secondary" className="gap-1">
+                <Badge variant="secondary" className="gap-1 bg-violet-500/10 text-violet-400 border-none font-bold uppercase tracking-widest text-[10px]">
                     <Sparkles className="h-3 w-3" />
-                    Gemini Interleaved Output
+                    Creative Director AI
                 </Badge>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left: Project selector & controls */}
-                <div className="space-y-4">
-                    <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                        <CardContent className="p-5 space-y-4">
+                <div className="space-y-6">
+                    <Card className="border-border/10 bg-card/40 backdrop-blur-xl">
+                        <CardContent className="p-6 space-y-6">
                             <div className="flex items-center gap-2">
-                                <Settings2 className="h-4 w-4 text-muted-foreground" />
-                                <h3 className="font-semibold text-sm">Generation Settings</h3>
+                                <Settings2 className="h-4 w-4 text-violet-500" />
+                                <h3 className="font-bold text-sm tracking-widest uppercase">Generation Settings</h3>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                                Select a project to generate a promo video. The AI will use your assets, brand voice,
-                                and campaign settings to create a full storyboard.
-                            </p>
-
-                            <div className="flex items-center justify-between border border-border/50 rounded-lg p-3 bg-black/20 dark:bg-white/5">
+                            
+                            <div className="flex items-center justify-between border border-border/10 rounded-2xl p-4 bg-zinc-900/50">
                                 <div className="space-y-0.5">
-                                    <h4 className="text-sm font-medium flex items-center gap-2">
-                                        <Sparkles className="h-4 w-4 text-fuchsia-400" />
-                                        Use Veo Generation
+                                    <h4 className="text-sm font-bold flex items-center gap-2">
+                                        Veo Neural Engine
                                     </h4>
-                                    <p className="text-xs text-muted-foreground text-left">High quality, consumes quota</p>
+                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter italic">Ultra-High Quality Generation</p>
                                 </div>
                                 <Switch checked={useVeo} onCheckedChange={setUseVeo} />
                             </div>
 
-                            <Button
-                                className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white"
-                                onClick={handleGenerate}
-                                disabled={isLoading || !projectId}
-                            >
-                                <Sparkles className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                                {isLoading ? "Generating..." : "Generate Storyboard"}
-                            </Button>
+                            <div className="space-y-3">
+                                <Button
+                                    className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-violet-500/20"
+                                    onClick={handleGenerate}
+                                    disabled={isLoading || !projectId}
+                                >
+                                    <Sparkles className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                    {isLoading ? "Drafting Canvas..." : "Generate Storyboard"}
+                                </Button>
 
-                            {/* Render button — enabled once scenes are ready */}
-                            <Button
-                                variant="outline"
-                                className="w-full border-violet-500/40 hover:bg-violet-500/10 text-violet-400"
-                                onClick={handleRender}
-                                disabled={isRendering || isLoading || !object?.scenes?.length}
-                            >
-                                <Video className={`mr-2 h-4 w-4 ${isRendering ? 'animate-pulse' : ''}`} />
-                                {isRendering ? "Rendering video..." : "Render Video"}
-                            </Button>
+                                <Button
+                                    variant="outline"
+                                    className="w-full border-border/10 bg-zinc-900/50 hover:bg-zinc-900 text-violet-400 font-bold h-11 rounded-xl"
+                                    onClick={handleRender}
+                                    disabled={isRendering || isLoading || !localScenes.length}
+                                >
+                                    <Video className={`mr-2 h-4 w-4 ${isRendering ? 'animate-pulse' : ''}`} />
+                                    {isRendering ? "Processing Frames..." : "Finalize Render"}
+                                </Button>
+                            </div>
 
                             {videoUrl && (
-                                <p className="text-xs text-muted-foreground break-all">
-                                    <Download className="inline h-3 w-3 mr-1" />
-                                    Output: <span className="text-violet-400">{videoUrl.split('?')[0]}</span>
-                                </p>
+                                <div className="p-4 rounded-xl bg-violet-600/5 border border-violet-500/10">
+                                    <p className="text-[10px] text-muted-foreground uppercase font-black mb-1">Last Output</p>
+                                    <p className="text-[10px] text-violet-400 truncate italic">
+                                        {videoUrl.split('?')[0]}
+                                    </p>
+                                </div>
                             )}
 
-                            <div className="pt-4 mt-6 border-t border-border/30">
+                            <div className="pt-4 border-t border-border/10">
                                 <Button
                                     variant="ghost"
-                                    className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    className="w-full text-zinc-600 hover:text-destructive hover:bg-destructive/10 text-xs font-bold uppercase tracking-widest"
                                     onClick={async () => {
-                                        if (window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
+                                        if (window.confirm("Archive this project workspace? all renders will be removed.")) {
                                             setIsDeleting(true);
                                             try {
                                                 const res = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
                                                 if (res.ok) {
-                                                    toast.success("Project deleted");
-                                                    window.location.href = "/studio/projects";
+                                                    toast.success("Project archived");
+                                                    window.location.href = "/projects";
                                                 }
                                             } catch (err) {
-                                                toast.error("Failed to delete project");
+                                                toast.error("Failed to archive project");
                                             } finally {
                                                 setIsDeleting(false);
                                             }
@@ -328,27 +324,24 @@ function VideoStudioContent() {
                                     disabled={isDeleting}
                                 >
                                     <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete Project
+                                    Archive Project
                                 </Button>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                        <CardContent className="p-5 space-y-3">
+                    <Card className="border-border/10 bg-card/40 backdrop-blur-xl">
+                        <CardContent className="p-6 space-y-4">
                             <div className="flex items-center gap-2">
-                                <Layers className="h-4 w-4 text-muted-foreground" />
-                                <h3 className="font-semibold text-sm">Scene Blocks</h3>
+                                <Layers className="h-4 w-4 text-violet-500" />
+                                <h3 className="font-bold text-sm tracking-widest uppercase">Sequence Blocks</h3>
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                                Scene blocks will appear here after generation. Edit text, swap assets, or regenerate individual scenes.
-                            </p>
-                            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1 pb-10">
+                            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar pb-10">
                                 <AnimatePresence>
                                     {scenes.length === 0 && !isLoading && (
-                                        <div className="h-48 rounded-lg border border-dashed border-border/50 flex flex-col items-center justify-center text-center p-4">
-                                            <Layers className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                                            <span className="text-sm text-muted-foreground">No scenes generated yet.<br />Click Generate to start the AI Director.</span>
+                                        <div className="h-48 rounded-2xl border border-dashed border-border/10 flex flex-col items-center justify-center text-center p-6 bg-zinc-900/20">
+                                            <Layers className="h-8 w-8 text-zinc-800 mb-2" />
+                                            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest italic leading-tight">Timeline is empty.<br />Generate a storyboard to begin.</span>
                                         </div>
                                     )}
                                     {scenes.map((scene, i) => (
@@ -370,9 +363,10 @@ function VideoStudioContent() {
                                         <motion.div
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
-                                            className="p-4 rounded-lg bg-black/5 dark:bg-white/5 border border-dashed border-border/50 flex justify-center"
+                                            className="p-8 rounded-2xl bg-violet-500/5 border border-dashed border-violet-500/20 flex flex-col items-center justify-center gap-3"
                                         >
-                                            <Sparkles className="h-5 w-5 animate-pulse text-violet-500" />
+                                            <Sparkles className="h-6 w-6 animate-pulse text-violet-500" />
+                                            <span className="text-[10px] font-bold text-violet-400 uppercase tracking-[0.2em]">Dreaming...</span>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -383,29 +377,33 @@ function VideoStudioContent() {
 
                 {/* Center: Preview / Live Stream Panel */}
                 <div className="lg:col-span-2">
-                    <Card className="border-border/50 bg-card/50 backdrop-blur-sm h-full">
-                        <CardContent className="p-5 h-full flex flex-col">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                    <Video className="h-4 w-4 text-muted-foreground" />
-                                    <h3 className="font-semibold text-sm">Live Preview</h3>
+                    <Card className="border-border/10 bg-card/40 backdrop-blur-xl h-full border-t-4 border-t-violet-500">
+                        <CardContent className="p-8 h-full flex flex-col">
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center">
+                                        <Play className="h-4 w-4 text-violet-500" />
+                                    </div>
+                                    <h3 className="font-bold text-lg tracking-tight">Master Preview</h3>
                                 </div>
-                                <div className="flex gap-2 bg-black/10 dark:bg-white/10 p-1 rounded-md">
+                                <div className="flex gap-2 bg-zinc-900 p-1 rounded-xl">
                                     <button
-                                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${aspectRatio === "16:9" ? "bg-background shadow font-bold" : "text-muted-foreground hover:text-foreground"}`}
+                                        className={`px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all uppercase tracking-widest ${aspectRatio === "16:9" ? "bg-violet-600 text-white shadow-xl" : "text-zinc-500 hover:text-zinc-300"}`}
                                         onClick={() => setAspectRatio("16:9")}
                                     >
-                                        16:9
+                                        Cinematic
                                     </button>
                                     <button
-                                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${aspectRatio === "9:16" ? "bg-background shadow font-bold" : "text-muted-foreground hover:text-foreground"}`}
+                                        className={`px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all uppercase tracking-widest ${aspectRatio === "9:16" ? "bg-violet-600 text-white shadow-xl" : "text-zinc-500 hover:text-zinc-300"}`}
                                         onClick={() => setAspectRatio("9:16")}
                                     >
-                                        9:16
+                                        Social
                                     </button>
                                 </div>
                             </div>
-                            <div className={`flex-1 min-h-[400px] rounded-xl bg-black/5 dark:bg-white/5 border border-border/30 flex items-center justify-center transition-all duration-500 overflow-hidden ${aspectRatio === "9:16" ? "mx-auto max-w-[300px] aspect-[9/16]" : "w-full aspect-video"}`}>
+                            <div className={`flex-1 min-h-[500px] rounded-[2rem] bg-zinc-950 border-8 border-zinc-900 shadow-2xl flex items-center justify-center transition-all duration-700 overflow-hidden relative group ${aspectRatio === "9:16" ? "mx-auto max-w-[320px] aspect-[9/16]" : "w-full aspect-video"}`}>
+                                <div className="absolute inset-0 bg-gradient-to-t from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                
                                 {videoUrl ? (
                                     <video
                                         src={videoUrl}
@@ -414,14 +412,14 @@ function VideoStudioContent() {
                                         className="w-full h-full object-contain"
                                     />
                                 ) : (
-                                    <div className="text-center space-y-3">
-                                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mx-auto">
-                                            <Play className="h-8 w-8 text-muted-foreground" />
+                                    <div className="text-center space-y-4">
+                                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-zinc-900/50 border border-border/10 mx-auto animate-pulse">
+                                            <Play className="h-10 w-10 text-zinc-700" />
                                         </div>
-                                        <div>
-                                            <p className="font-medium">Video Preview</p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {isLoading ? "Generating storyboard..." : isRendering ? "Rendering video..." : "Generate a storyboard to see the live preview"}
+                                        <div className="space-y-1">
+                                            <p className="font-bold text-zinc-400">Preview Engine Offline</p>
+                                            <p className="text-xs text-muted-foreground italic max-w-xs">
+                                                {isLoading ? "Synchronizing with Creative Director..." : isRendering ? "Synthesizing neural frames..." : "Initiate storyboard generation to activate preview."}
                                             </p>
                                         </div>
                                     </div>
@@ -431,13 +429,13 @@ function VideoStudioContent() {
                     </Card>
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }
 
 export default function VideoStudioPage() {
     return (
-        <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading Studio...</div>}>
+        <Suspense fallback={<div className="p-8 text-center text-muted-foreground animate-pulse font-black uppercase tracking-widest">Waking Studio Agent...</div>}>
             <VideoStudioContent />
         </Suspense>
     );
