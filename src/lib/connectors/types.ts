@@ -12,16 +12,28 @@ export type ConnectorId =
     | 'contentful'
     | 'youtube'
     | 'twitter'
-    | 'instagram';
+    | 'instagram'
+    | 'linkedin'
+    | 'facebook'
+    | 'tiktok'
+    | 'reddit';
 
 export interface ConnectorConfig {
     id: ConnectorId;
     /** User-supplied credential fields for this connector */
     credentials: Record<string, string>;
     connectedAt: string; // ISO date string
+    accountName?: string; // e.g. @founder
+    usageCount?: number;
+    lastUsedAt?: string;
 }
 
-/** What we save to Firestore under projects/{projectId}/connectors/{connectorId} */
+/** What we save to Firestore under owners/{ownerId}/connectors/{connectorId} */
+export interface StoredOwnerConnector extends ConnectorConfig {
+    ownerId: string;
+}
+
+/** [DEPRECATED] Use StoredOwnerConnector */
 export interface StoredConnector extends ConnectorConfig {
     projectId: string;
 }

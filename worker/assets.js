@@ -93,7 +93,7 @@ async function downloadFromGCS(gcsUri, destPath) {
         const db = new Firestore(credentials);
         const doc = await db.collection('assets').doc(gcsUri).get();
         if (!doc.exists) {
-            throw new Error(`Asset not found in Firestore: ${gcsUri}`);
+            throw new Error(`ASSET_NOT_FOUND: ${gcsUri}`);
         }
         const data = doc.data();
         if (data && data.gcsUrl) {
@@ -101,7 +101,7 @@ async function downloadFromGCS(gcsUri, destPath) {
             console.log(`   ↳ Resolved to: ${gcsUri}`);
         }
         else {
-            throw new Error(`Asset document missing gcsUrl: ${gcsUri}`);
+            throw new Error(`ASSET_DOC_INVALID: ${gcsUri}`);
         }
     }
     // Parse https://storage.googleapis.com/bucket/object or gs://bucket/object

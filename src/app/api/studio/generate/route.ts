@@ -91,6 +91,7 @@ INSTRUCTIONS:
         });
 
         // Autonomous Tool Execution Loop
+        let projectScraperSettings: any = null;
         let loopCount = 0;
         while (adkResponse.functionCalls && adkResponse.functionCalls.length > 0 && loopCount < 5) {
             const functionResponses = [];
@@ -104,10 +105,22 @@ INSTRUCTIONS:
                 let resultData;
                 if (name === 'get_project_context') {
                     resultData = await getProjectContext(args.projectId);
+                    projectScraperSettings = resultData.scraperSettings;
                 } else if (name === 'get_project_assets') {
                     resultData = await getProjectAssets(args.projectId);
                 } else if (name === 'scrape_website') {
-                    resultData = await scrapeWebsite(args.url);
+                    // Apply user-defined scraper constraints
+                    const finalUrl = (projectScraperSettings?.scope === 'path-only' && projectScraperSettings.path)
+                        ? `${args.url}${projectScraperSettings.path.startsWith('/') ? '' : '/'}${projectScraperSettings.path}`
+                        : args.url;
+
+                    resultData = await scrapeWebsite(
+                        finalUrl,
+                        projectScraperSettings?.scope,
+                        projectScraperSettings?.depth,
+                        projectScraperSettings?.extractImages,
+                        projectScraperSettings?.extractTestimonials
+                    );
                 } else {
                     resultData = { error: 'Unknown function' };
                 }
@@ -168,7 +181,11 @@ INSTRUCTIONS:
       - Configure \`subtitle_settings\` specifically for the voiceover.
       - Give the narrator time to breathe: Ensure duration allows natural pacing.
       
-      For visual.base.source, prefer 'uploaded_asset' if an appropriate asset exists in the brief, referencing it exactly by its 20-character asset_id. NEVER use the filename for the asset_id.
+      For visual.base.source, prefer 'uploaded_asset' ONLY if an asset exists in the CREATIVE BRIEF list. 
+      - If you use 'uploaded_asset', you MUST reference it by its exact 20-character alphanumeric ID (e.g. 'abc123...'). 
+      - NEVER invent an ID like 'ASSET_UI_SCREEN_1'. 
+      - If no specific asset matches the scene, use 'generate_image' or 'generate_video' instead.
+      
       IF the 'uploaded_asset' is a video, estimate 'start_time_seconds' and 'end_time_seconds'.
       ${useVeo ? "Use 'generate_video' heavily if no suitable uploaded asset is found (since High Quality Video Generation is ENABLED) and provide a rich prompt describing the fast, dynamic motion in extreme detail." : "Otherwise, use 'generate_image' (provide a highly descriptive visual prompt for Google Imagen)."}
     `;
