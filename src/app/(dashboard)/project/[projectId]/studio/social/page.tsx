@@ -116,6 +116,7 @@ export default function SocialStudioPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [content, setContent] = useState("");
     const [generatedPosts, setGeneratedPosts] = useState<any[]>([]);
+    const [isPublishing, setIsPublishing] = useState(false);
 
     const charCount = content.length;
     const charLimit = PLATFORMS[platform as keyof typeof PLATFORMS]?.limit || 280;
@@ -175,9 +176,35 @@ export default function SocialStudioPage() {
         }
     };
 
+    // ── Publish ──────────────────────────────────────────────
+    const handlePublish = async (postContent: string, postPlatform: string) => {
+        if (!projectId || !postContent) return;
+
+        setIsPublishing(true);
+        const promise = fetch("/api/publish", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                projectId,
+                platform: postPlatform,
+                content: postContent
+            }),
+        });
+
+        toast.promise(promise, {
+            loading: `Protocol: Dispatching to ${postPlatform}...`,
+            success: (res) => {
+                if (!res.ok) throw new Error("Handshake failed");
+                return `Successfully published to ${postPlatform}!`;
+            },
+            error: (err) => `Publication failed: ${err.message}`,
+            finally: () => setIsPublishing(false)
+        });
+    };
+
     return (
         <div className="flex h-full overflow-hidden bg-background">
-            {/* Left Column: AI Configuration */}
+            {/* ... left column unchanged ... */}
             <div className="w-[400px] border-r border-border/40 p-6 flex flex-col gap-6 overflow-y-auto custom-scrollbar bg-zinc-950/20">
                 <div className="space-y-1">
                     <h1 className="text-xl font-bold flex items-center gap-2">
@@ -306,8 +333,12 @@ export default function SocialStudioPage() {
                                     <Layout className="h-4 w-4 text-violet-400" />
                                     <span>Copy Markdown</span>
                                 </Button>
-                                <Button className="bg-white text-black hover:bg-zinc-200 gap-2 h-10 px-8 font-bold">
-                                    <CheckCircle2 className="h-4 w-4" />
+                                <Button 
+                                    onClick={() => handlePublish(content, platform)}
+                                    disabled={isPublishing || !content || isOverLimit}
+                                    className="bg-white text-black hover:bg-zinc-200 gap-2 h-10 px-8 font-bold"
+                                >
+                                    {isPublishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                                     <span>Publish Now</span>
                                 </Button>
                             </div>
@@ -325,8 +356,17 @@ export default function SocialStudioPage() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.1 }}
+                                    className="flex flex-col items-center gap-4"
                                 >
                                     <PlatformMockup platform={post.platform} content={post.content} />
+                                    <Button 
+                                        size="sm"
+                                        onClick={() => handlePublish(post.content, post.platform)}
+                                        disabled={isPublishing}
+                                        className="w-full max-w-[340px] bg-zinc-900 text-white hover:bg-violet-600 transition-colors rounded-xl font-black uppercase text-[10px] tracking-widest h-10"
+                                    >
+                                        Publish to {post.platform}
+                                    </Button>
                                 </motion.div>
                             )) : (
                                 <div className="col-span-full h-96 flex flex-col items-center justify-center text-muted-foreground italic gap-4">

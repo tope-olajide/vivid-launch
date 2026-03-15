@@ -40,6 +40,7 @@ const ffmpeg = require("fluent-ffmpeg");
 const mp3Duration = require('mp3-duration');
 const tts_1 = require("./tts");
 const assets_1 = require("./assets");
+const { generateVeoVideo } = require("./assets");
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 const GCP_PROJECT = process.env.GCP_PROJECT_ID;
 const ffmpegStatic = require('ffmpeg-static');
@@ -90,6 +91,18 @@ projectId) {
         catch (err) {
             console.warn(`⚠️  Imagen fallback (${err.message}). Using solid-color clip.`);
             const fallbackDest = path.join(WORK_DIR, `fallback_${Date.now()}.mp4`);
+            return await createSolidColorVideo(fallbackDest, duration, 'black');
+        }
+    }
+    // ── 3. AI-generated video (Vertex AI Veo) ─────────────────────────────
+    if (source === 'generate_video') {
+        const videoPrompt = prompt || 'cinematic motion scene';
+        try {
+            const dest = path.join(WORK_DIR, `veo_${Date.now()}.mp4`);
+            return await generateVeoVideo(videoPrompt, dest, projectId, duration);
+        } catch (err) {
+            console.warn(`⚠️  Veo fallback (${err.message}). Using solid-color clip.`);
+            const fallbackDest = path.join(WORK_DIR, `fallback_veo_${Date.now()}.mp4`);
             return await createSolidColorVideo(fallbackDest, duration, 'black');
         }
     }

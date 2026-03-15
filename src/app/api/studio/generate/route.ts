@@ -50,11 +50,13 @@ const sceneBlockSchema = z.object({
 
 export async function POST(req: Request) {
     try {
-        const { projectId, prompt, useVeo } = await req.json();
+        const { projectId, prompt, videoEngine } = await req.json();
 
         if (!projectId) {
             return new Response("Missing projectId", { status: 400 });
         }
+
+        const engine = videoEngine || "image";
 
         // ─────────────────────────────────────────────────────────────
         // 1. Core Agent Intelligence Loop (Google ADK + Tools)
@@ -67,7 +69,7 @@ export async function POST(req: Request) {
         
         // Let the agent use tools to fetch context autonomously
         const chat = ai.chats.create({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-2.0-flash-exp', // Using a stable flash model for context gathering
             config: {
                 systemInstruction: `You are the Creative Director Researcher for VividLaunch. You compile project briefs so a video storyboard can be generated. 
 You have tools to fetch project context, assets, and scrape websites. 
@@ -86,9 +88,8 @@ INSTRUCTIONS:
             }
         });
 
-        let adkResponse = await chat.sendMessage({ 
-            message: `Please gather context for projectId: ${projectId}. User prompt: ${prompt || "Generate a high-impact promotional video storyboard."}` 
-        });
+        const adkInitialPrompt = `Please gather context for projectId: ${projectId}. User prompt: ${prompt || "Generate a high-impact promotional video storyboard."}`;
+        let adkResponse = await chat.sendMessage({ message: adkInitialPrompt });
 
         // Autonomous Tool Execution Loop
         let projectScraperSettings: any = null;
@@ -109,7 +110,6 @@ INSTRUCTIONS:
                 } else if (name === 'get_project_assets') {
                     resultData = await getProjectAssets(args.projectId);
                 } else if (name === 'scrape_website') {
-                    // Apply user-defined scraper constraints
                     const finalUrl = (projectScraperSettings?.scope === 'path-only' && projectScraperSettings.path)
                         ? `${args.url}${projectScraperSettings.path.startsWith('/') ? '' : '/'}${projectScraperSettings.path}`
                         : args.url;
@@ -144,15 +144,13 @@ INSTRUCTIONS:
         // 2. Prepare Media for Gemini Structured Generative Pass
         // ─────────────────────────────────────────────────────────────
         
-        // Re-fetch assets manually just to get GCS URLs for the Vercel AI SDK passing 
-        // (Since the ADK loop returns text summaries, we still need the raw image buffers for the vision model)
         const { db, COLLECTIONS } = require('@/lib/gcp/firestore');
         const snapshot = await db.collection(COLLECTIONS.ASSETS).where('projectId', '==', projectId).get();
         const mediaMessages: any[] = [];
         
         for (const doc of snapshot.docs) {
             const asset = doc.data();
-            if (asset.gcsUrl && asset.type === 'image') {
+            if (asset.gcsUrl && (asset.type === 'image' || asset.type.startsWith('image/'))) {
                 const signedUrl = await generateV4ReadSignedUrl(asset.gcsUrl);
                 mediaMessages.push({
                     type: 'image',
@@ -165,11 +163,20 @@ INSTRUCTIONS:
         // 3. Final JSON Stream Generation
         // ─────────────────────────────────────────────────────────────
 
+        const enginePromptMap = {
+            image: "Favor 'generate_image' for any missing visual assets. Focus on creating highly descriptive prompts for a high-quality static background that will have Ken Burns motion applied.",
+            hybrid: "Use 'generate_video' heavily for high-action scenes to invoke Veo 2's motion capabilities. Use 'generate_image' as a fallback for atmospheric or quiet scenes. Prompts for 'generate_video' must describe cinematic motion, camera moves, and physical interactions in extreme detail.",
+            cinematic: "Use 'generate_video' for ALL scenes to leverage Veo 3.1's full power. Provide ultra-detailed prompts including lighting, focal length, and character performance. Expect native audio synchronization."
+        };
+
         const systemPrompt = `
       You are the Creative Director and Cinematographer Gen-Agent for VividLaunch.
       
       CREATIVE BRIEF (Compiled by ADK Researcher):
       ${creativeBrief}
+
+      VIDEO ENGINE MODE: ${engine.toUpperCase()}
+      ${enginePromptMap[engine as keyof typeof enginePromptMap]}
 
       SAFETY GUARDRAILS:
       Do NOT generate content that promotes hate speech, violence, illegal acts, sexual explicitness, or harassment. If the project context requests something prohibited, pivot to generating a generic, safe promotional video.
@@ -181,17 +188,15 @@ INSTRUCTIONS:
       - Configure \`subtitle_settings\` specifically for the voiceover.
       - Give the narrator time to breathe: Ensure duration allows natural pacing.
       
-      For visual.base.source, prefer 'uploaded_asset' ONLY if an asset exists in the CREATIVE BRIEF list. 
+      For visual.base.source:
+      - prefer 'uploaded_asset' ONLY if an asset exists in the CREATIVE BRIEF list. 
       - If you use 'uploaded_asset', you MUST reference it by its exact 20-character alphanumeric ID (e.g. 'abc123...'). 
-      - NEVER invent an ID like 'ASSET_UI_SCREEN_1'. 
-      - If no specific asset matches the scene, use 'generate_image' or 'generate_video' instead.
-      
-      IF the 'uploaded_asset' is a video, estimate 'start_time_seconds' and 'end_time_seconds'.
-      ${useVeo ? "Use 'generate_video' heavily if no suitable uploaded asset is found (since High Quality Video Generation is ENABLED) and provide a rich prompt describing the fast, dynamic motion in extreme detail." : "Otherwise, use 'generate_image' (provide a highly descriptive visual prompt for Google Imagen)."}
+      - If no matching uploaded asset is found, use 'generate_image' or 'generate_video' based on the VIDEO ENGINE MODE above.
+      - IF the 'uploaded_asset' is a video, estimate 'start_time_seconds' and 'end_time_seconds'.
     `;
 
         const result = await streamObject({
-            model: google('gemini-3-flash-preview'),
+            model: google('gemini-2.0-flash-exp'),
             schema: sceneBlockSchema,
             system: systemPrompt,
             messages: [

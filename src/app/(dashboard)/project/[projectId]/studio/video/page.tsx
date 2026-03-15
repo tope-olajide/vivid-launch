@@ -19,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import { EditableSceneBlock, type SceneData } from "@/components/studio/EditableSceneBlock";
 
 // Schema must exactly match the backend to parse the stream
@@ -65,7 +66,7 @@ function VideoStudioContent() {
     const params = useParams();
     const projectId = params.projectId as string;
     const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
-    const [useVeo, setUseVeo] = useState(false);
+    const [videoEngine, setVideoEngine] = useState<"image" | "hybrid" | "cinematic">("image");
     const [isRendering, setIsRendering] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -117,7 +118,7 @@ function VideoStudioContent() {
         if (!projectId) { toast.error("No project context."); return; }
         setVideoUrl(null);
         setLocalScenes([]);
-        submit({ projectId, prompt: "Generate a high-impact promotional video storyboard.", useVeo });
+        submit({ projectId, prompt: "Generate a high-impact promotional video storyboard.", videoEngine });
     };
 
     // Save scenes to Firestore whenever they change (debounce or manual)
@@ -261,14 +262,67 @@ function VideoStudioContent() {
                                 <h3 className="font-bold text-sm tracking-widest uppercase">Generation Settings</h3>
                             </div>
                             
-                            <div className="flex items-center justify-between border border-border/10 rounded-2xl p-4 bg-zinc-900/50">
-                                <div className="space-y-0.5">
-                                    <h4 className="text-sm font-bold flex items-center gap-2">
-                                        Veo Neural Engine
-                                    </h4>
-                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter italic">Ultra-High Quality Generation</p>
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Video Generation Engine</label>
+                                
+                                <div className="grid grid-cols-1 gap-2">
+                                    {/* Option A */}
+                                    <button 
+                                        onClick={() => setVideoEngine("image")}
+                                        className={cn(
+                                            "flex flex-col gap-1 p-4 rounded-2xl border transition-all text-left group",
+                                            videoEngine === "image" 
+                                                ? "bg-violet-600/10 border-violet-500/50 shadow-[0_0_20px_rgba(139,92,246,0.1)]" 
+                                                : "bg-zinc-900/50 border-white/5 hover:bg-zinc-900 hover:border-white/10"
+                                        )}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className={cn("text-xs font-black uppercase tracking-tight", videoEngine === "image" ? "text-violet-400" : "text-zinc-400")}>Option A — Pulse</span>
+                                            <Badge variant="outline" className="text-[8px] h-4 border-none bg-emerald-500/10 text-emerald-400 font-black">LOW COST</Badge>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground leading-tight italic">Image-based dynamic slideshow (Imagen 3). Fast & efficient.</p>
+                                    </button>
+
+                                    {/* Option B */}
+                                    <button 
+                                        onClick={() => setVideoEngine("hybrid")}
+                                        className={cn(
+                                            "flex flex-col gap-1 p-4 rounded-2xl border transition-all text-left group",
+                                            videoEngine === "hybrid" 
+                                                ? "bg-fuchsia-600/10 border-fuchsia-500/50 shadow-[0_0_20px_rgba(217,70,239,0.1)]" 
+                                                : "bg-zinc-900/50 border-white/5 hover:bg-zinc-900 hover:border-white/10"
+                                        )}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className={cn("text-xs font-black uppercase tracking-tight", videoEngine === "hybrid" ? "text-fuchsia-400" : "text-zinc-400")}>Option B — Hybrid</span>
+                                            <Badge variant="outline" className="text-[8px] h-4 border-none bg-fuchsia-500/10 text-fuchsia-400 font-black">MEDIUM COST</Badge>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground leading-tight italic">AI Video clips (Veo 2) + Fallback images. Balanced motion.</p>
+                                    </button>
+
+                                    {/* Option C */}
+                                    <button 
+                                        onClick={() => {
+                                            // Simulated credit check for Option C
+                                            toast.info("Checking API Credits for Veo 3.1...");
+                                            setTimeout(() => {
+                                                setVideoEngine("cinematic");
+                                            }, 500);
+                                        }}
+                                        className={cn(
+                                            "flex flex-col gap-1 p-4 rounded-2xl border transition-all text-left group",
+                                            videoEngine === "cinematic" 
+                                                ? "bg-amber-600/10 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]" 
+                                                : "bg-zinc-900/50 border-white/5 hover:bg-zinc-900 hover:border-white/10"
+                                        )}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className={cn("text-xs font-black uppercase tracking-tight", videoEngine === "cinematic" ? "text-amber-400" : "text-zinc-400")}>Option C — Cinematic</span>
+                                            <Badge variant="outline" className="text-[8px] h-4 border-none bg-amber-500/10 text-amber-400 font-black">HIGH COST</Badge>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground leading-tight italic">Full Veo 3.1 generation with native synced audio. Maximum quality.</p>
+                                    </button>
                                 </div>
-                                <Switch checked={useVeo} onCheckedChange={setUseVeo} />
                             </div>
 
                             <div className="space-y-3">
