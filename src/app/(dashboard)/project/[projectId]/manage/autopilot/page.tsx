@@ -17,6 +17,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 /**
@@ -28,6 +29,9 @@ export default function ProjectSettingsPage() {
     const projectId = params.projectId as string;
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    
+    // State for Global Connectors (fetched from /api/connectors)
+    const [globalConnectors, setGlobalConnectors] = useState<string[]>([]);
     
     // Form State
     const [enabledPlatforms, setEnabledPlatforms] = useState<string[]>([]);
@@ -42,26 +46,62 @@ export default function ProjectSettingsPage() {
     });
 
     useEffect(() => {
-        if (projectId) {
-            fetch(`/api/projects`)
-                .then(res => res.json())
-                .then(data => {
-                    const project = data.projects.find((p: any) => p.id === projectId);
-                    if (project) {
-                        // In a real app, we'd map project.settings here
-                        setIsLoading(false);
-                    }
-                });
-        }
+        if (!projectId) return;
+
+        const loadData = async () => {
+            setIsLoading(true);
+            try {
+                // 1. Fetch Global Connectors
+                const connRes = await fetch(`/api/connectors`);
+                const connData = await connRes.json();
+                if (connData.connectors) {
+                    setGlobalConnectors(connData.connectors.map((c: any) => c.id));
+                }
+
+                // 2. Fetch Project Autopilot Settings
+                const res = await fetch(`/api/projects/${projectId}/autopilot`);
+                const data = await res.json();
+                if (data.autopilotSettings) {
+                    const settings = data.autopilotSettings;
+                    setEnabledPlatforms(settings.enabledPlatforms || []);
+                    setAutomationEnabled(settings.automationEnabled || false);
+                    setPulse(settings.pulse || { videos: 1, blogs: 1, social: 7 });
+                    setBrandVoice(settings.brandVoice || {
+                        tone: 50, humor: 30, formality: 70, emojiDensity: 40, customPrompt: ""
+                    });
+                }
+            } catch (err) {
+                console.error("Error loading autopilot data:", err);
+                toast.error("Failed to load automation registry.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadData();
     }, [projectId]);
 
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            // Save to Firestore logic here
-            toast.success("Settings saved successfully!");
+            const autopilotSettings = {
+                enabledPlatforms,
+                automationEnabled,
+                pulse,
+                brandVoice
+            };
+
+            const res = await fetch(`/api/projects/${projectId}/autopilot`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ autopilotSettings }),
+            });
+
+            if (!res.ok) throw new Error("Save failed");
+            
+            toast.success("Autonomous directives updated!");
         } catch (err) {
-            toast.error("Failed to save settings");
+            toast.error("Failed to synchronize settings");
         } finally {
             setIsSaving(false);
         }
@@ -114,38 +154,72 @@ export default function ProjectSettingsPage() {
                 <TabsContent value="integrations">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[
-                            { id: 'twitter', name: 'X / Twitter', color: 'bg-black' },
-                            { id: 'linkedin', name: 'LinkedIn', color: 'bg-[#0A66C2]' },
-                            { id: 'instagram', name: 'Instagram', color: 'bg-rose-500' },
-                            { id: 'youtube', name: 'YouTube', color: 'bg-red-600' },
-                            { id: 'devto', name: 'Dev.to', color: 'bg-zinc-900' },
-                            { id: 'ghost', name: 'Ghost CMS', color: 'bg-white text-black' }
-                        ].map((p) => (
-                            <Card key={p.id} className="bg-card/40 border-border/10 backdrop-blur-xl group hover:border-violet-500/30 transition-all">
-                                <CardContent className="p-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-xl ${p.color} flex items-center justify-center shadow-lg`}>
-                                            <Share2 className="h-5 w-5 opacity-80" />
+                            { id: 'devto', name: 'Dev.to', color: 'bg-zinc-900', type: 'blog' },
+                            { id: 'hashnode', name: 'Hashnode', color: 'bg-blue-600', type: 'blog' },
+                            { id: 'medium', name: 'Medium', color: 'bg-zinc-800', type: 'blog' },
+                            { id: 'ghost', name: 'Ghost CMS', color: 'bg-white text-black', type: 'blog' },
+                            { id: 'youtube', name: 'YouTube', color: 'bg-red-600', type: 'video' },
+                            { id: 'twitter', name: 'X / Twitter', color: 'bg-black', type: 'social' },
+                            { id: 'instagram', name: 'Instagram', color: 'bg-rose-500', type: 'social' }
+                        ].map((p) => {
+                            const isGloballyConnected = globalConnectors.includes(p.id);
+                            const isProjectEnabled = enabledPlatforms.includes(p.id);
+                            
+                            return (
+                                <Card key={p.id} className={cn(
+                                    "bg-card/40 border-border/10 backdrop-blur-xl group hover:border-violet-500/30 transition-all",
+                                    !isGloballyConnected && "opacity-50 grayscale-[0.5]"
+                                )}>
+                                    <CardContent className="p-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl ${p.color} flex items-center justify-center shadow-lg relative`}>
+                                                <Share2 className="h-5 w-5 opacity-80" />
+                                                {!isGloballyConnected && (
+                                                    <div className="absolute -top-1 -right-1">
+                                                        <Lock className="h-3 w-3 text-zinc-500 bg-zinc-950 rounded-full p-0.5" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm">{p.name}</p>
+                                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                                                    {isGloballyConnected ? "Ready to Launch" : "Needs Connection"}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-sm">{p.name}</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Global Connector</p>
+                                        <div className="flex items-center gap-3">
+                                            {isGloballyConnected ? (
+                                                <>
+                                                    <Badge variant="outline" className={cn(
+                                                        "text-[9px] border-none font-black uppercase tracking-widest",
+                                                        isProjectEnabled ? "bg-emerald-500/10 text-emerald-400" : "bg-zinc-500/10 text-zinc-500"
+                                                    )}>
+                                                        {isProjectEnabled ? "ACTIVE" : "STANDBY"}
+                                                    </Badge>
+                                                    <Switch 
+                                                        checked={isProjectEnabled}
+                                                        onCheckedChange={(checked) => {
+                                                            setEnabledPlatforms(prev => 
+                                                                checked ? [...prev, p.id] : prev.filter(id => id !== p.id)
+                                                            )
+                                                        }}
+                                                    />
+                                                </>
+                                            ) : (
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    className="text-[10px] font-black uppercase tracking-widest text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 h-7"
+                                                    asChild
+                                                >
+                                                    <a href={`/project/${projectId}/manage/connectors`}>Connect</a>
+                                                </Button>
+                                            )}
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <Badge variant="outline" className="text-[9px] bg-green-500/5 text-green-400 border-none">CONNECTED</Badge>
-                                        <Switch 
-                                            checked={enabledPlatforms.includes(p.id)}
-                                            onCheckedChange={(checked) => {
-                                                setEnabledPlatforms(prev => 
-                                                    checked ? [...prev, p.id] : prev.filter(id => id !== p.id)
-                                                )
-                                            }}
-                                        />
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                    </CardContent>
+                                </Card>
+                            )
+                        })}
                     </div>
                 </TabsContent>
 
@@ -206,29 +280,43 @@ export default function ProjectSettingsPage() {
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="border-t border-border/10 divide-y divide-border/10">
-                                    {[1, 2, 3, 4].map((day) => (
-                                        <div key={day} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors group">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 text-center">
-                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase uppercase">Day</p>
-                                                    <p className="text-xl font-black">{day}</p>
-                                                </div>
-                                                <div className="h-10 w-px bg-border/20" />
-                                                <div className="space-y-0.5">
-                                                    <div className="flex gap-2">
-                                                        <Badge className="bg-violet-600/20 text-violet-400 text-[9px] px-1.5 h-4">VIDEO</Badge>
-                                                        <Badge className="bg-sky-600/20 text-sky-400 text-[9px] px-1.5 h-4">X (TWITTER)</Badge>
+                                    {[1, 2, 3, 4, 5, 6, 7].map((day) => {
+                                        const events = [];
+                                        if (pulse.videos > 0 && day % Math.ceil(7 / pulse.videos) === 0) events.push({ type: 'VIDEO', color: 'bg-violet-600/20 text-violet-400' });
+                                        if (pulse.blogs > 0 && day % Math.ceil(7 / pulse.blogs) === 0) events.push({ type: 'BLOG', color: 'bg-emerald-600/20 text-emerald-400' });
+                                        if (pulse.social > 0) {
+                                            for(let i=0; i<Math.ceil(pulse.social / 7); i++) {
+                                                events.push({ type: 'SOCIAL', color: 'bg-sky-600/20 text-sky-400' });
+                                            }
+                                        }
+
+                                        return (
+                                            <div key={day} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 text-center">
+                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Day</p>
+                                                        <p className="text-xl font-black">{day}</p>
                                                     </div>
-                                                    <p className="text-xs text-muted-foreground italic truncate max-w-xs">
-                                                        "New feature reveal and viral hook generation..."
-                                                    </p>
+                                                    <div className="h-10 w-px bg-border/20" />
+                                                    <div className="space-y-1.5">
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {events.length > 0 ? events.map((e, idx) => (
+                                                                <Badge key={idx} className={cn("text-[9px] px-1.5 h-4 border-none font-black", e.color)}>{e.type}</Badge>
+                                                            )) : (
+                                                                <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest italic">Rest & Strategy</span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[10px] text-muted-foreground italic truncate max-w-xs font-medium uppercase tracking-tight">
+                                                            {events.length > 0 ? `Gemini will choreograph ${events.length} multi-channel event(s)` : "Maintenance & Registry Sync"}
+                                                        </p>
+                                                    </div>
                                                 </div>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-700 hover:text-violet-400 group-hover:translate-x-1 transition-transform">
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </Button>
                                             </div>
-                                            <Button variant="ghost" size="icon" className="group-hover:translate-x-1 transition-transform">
-                                                <ChevronRight className="h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </CardContent>
                         </Card>
