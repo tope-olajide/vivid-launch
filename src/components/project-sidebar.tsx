@@ -6,8 +6,6 @@ import {
     Video,
     FileText,
     MessageCircle,
-    GitCompareArrows,
-    Zap,
     Share2,
     Rocket,
     LayoutDashboard,
@@ -31,8 +29,6 @@ const createNav = [
     { title: "Video Studio", href: "/studio/video", icon: Video },
     { title: "Blog Engine", href: "/studio/blog", icon: FileText },
     { title: "Social Studio", href: "/studio/social", icon: MessageCircle },
-    { title: "A/B Variants", href: "/studio/variants", icon: GitCompareArrows },
-    { title: "Live Mode", href: "/studio/live", icon: Zap },
 ];
 
 const manageNav = [
@@ -50,11 +46,18 @@ export function ProjectSidebar() {
     const getFullHref = (href: string) => `/project/${projectId}${href}`;
 
     return (
-        <Sidebar className="border-r border-border/50 top-16 h-[calc(100vh-64px)]">
-            <SidebarHeader className="p-4 border-b border-border/20">
+        <Sidebar className="border-r border-border/50 h-screen">
+            <SidebarHeader className="p-4 border-b border-border/20 space-y-6">
+                <Link href="/dashboard" className="px-2 block group">
+                    <img 
+                        src="/logo.png" 
+                        alt="VividLaunch Logo" 
+                        className="h-12 w-auto object-contain transition-transform group-hover:scale-105" 
+                    />
+                </Link>
                 <Link 
                     href="/projects" 
-                    className="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-white transition-colors uppercase tracking-widest"
+                    className="flex items-center gap-2 text-[10px] font-black text-muted-foreground hover:text-white transition-colors uppercase tracking-widest px-2"
                 >
                     <ChevronLeft className="h-3 w-3" />
                     Back to Projects

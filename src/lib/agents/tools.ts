@@ -98,10 +98,20 @@ export const scrapeWebsiteDeclaration: FunctionDeclaration = {
 };
 
 export async function scrapeWebsite(url: string, scope?: string, depth?: number, extractImages?: boolean, extractTestimonials?: boolean) {
-    console.log(`[Tool] scrape_website called for ${url} (Scope: ${scope}, Depth: ${depth})`);
+    console.log(`[Tool] scrape_website initiated for: ${url}`);
     try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const res = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+            }
+        });
+        
+        if (!res.ok) {
+            console.error(`[Tool] scrape_website fetch failed with status ${res.status} for ${url}`);
+            throw new Error(`External source returned status ${res.status}`);
+        }
+        
         const html = await res.text();
         const $ = cheerio.load(html);
         
@@ -119,16 +129,18 @@ export async function scrapeWebsite(url: string, scope?: string, depth?: number,
         const content: string[] = [];
         $('h1, h2, h3, p, li').each((_, el) => {
             const text = $(el).text().replace(/\s+/g, ' ').trim();
-            if (text.length > 10) content.push(text);
+            if (text.length > 20) content.push(text);
         });
         
-        // Return text + simulated metadata
+        const scrapedText = content.join('\n').slice(0, 4000);
+        console.log(`[Tool] scrape_website success. Extracted ${scrapedText.length} characters.`);
+
         return { 
-            scrapedText: content.join('\n').slice(0, 3000),
+            scrapedText,
             metadata
         };
     } catch (err: any) {
-        console.error(`[Tool] scrape_website error: ${err.message}`);
-        return { error: `Failed to scrape ${url}: ${err.message}` };
+        console.error(`[Tool] scrape_website CRITICAL error: ${err.message}`);
+        return { error: `VividLaunch could not reach this source: ${err.message}` };
     }
 }

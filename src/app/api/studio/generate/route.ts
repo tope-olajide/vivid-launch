@@ -1,6 +1,14 @@
 import { streamObject } from 'ai';
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { z } from 'zod';
+
+const googleAI = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    // Add custom fetch options if needed to increase standard fetch timeout
+});
+
+// Configure the model instance
+const googleModel = googleAI('gemini-3.1-pro-preview');
 import { GoogleGenAI } from '@google/genai';
 import {
     getProjectContextDeclaration, getProjectContext,
@@ -48,15 +56,24 @@ const sceneBlockSchema = z.object({
     }))
 });
 
+const blogSchema = z.object({
+    title: z.string(),
+    body: z.string(),
+    tags: z.array(z.string()),
+    description: z.string().optional(),
+});
+
 export async function POST(req: Request) {
     try {
-        const { projectId, prompt, videoEngine } = await req.json();
+        const { projectId, prompt, videoEngine, format, targetDuration } = await req.json();
+        console.log(`[Generate API] Request received`, { projectId, format, videoEngine, targetDuration });
 
         if (!projectId) {
             return new Response("Missing projectId", { status: 400 });
         }
 
         const engine = videoEngine || "image";
+        const durationSetting = targetDuration || 30; // Default to 30s
 
         // ─────────────────────────────────────────────────────────────
         // 1. Core Agent Intelligence Loop (Google ADK + Tools)
@@ -65,11 +82,8 @@ export async function POST(req: Request) {
         // Initialize the ADK client
         const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY });
         
-        console.log(`[Agent] Initiating context gathering loop for project ${projectId}...`);
-        
-        // Let the agent use tools to fetch context autonomously
         const chat = ai.chats.create({
-            model: 'gemini-2.0-flash-exp', // Using a stable flash model for context gathering
+            model: 'gemini-3.1-pro-preview', 
             config: {
                 systemInstruction: `You are the Creative Director Researcher for VividLaunch. You compile project briefs so a video storyboard can be generated. 
 You have tools to fetch project context, assets, and scrape websites. 
@@ -88,14 +102,29 @@ INSTRUCTIONS:
             }
         });
 
+        // Retry wrapper for ADK calls to handle intermittent network blips
+        const withRetry = async (fn: () => Promise<any>, retries = 3, delay = 1000) => {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    return await fn();
+                } catch (err: any) {
+                    if (i === retries - 1) throw err;
+                    const isTimeout = err.message?.includes('timeout') || err.code === 'UND_ERR_CONNECT_TIMEOUT';
+                    console.warn(`[Agent] ${isTimeout ? 'Timeout' : 'Error'} on attempt ${i + 1}. Retrying in ${delay}ms...`);
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2; // Exponential backoff
+                }
+            }
+        };
+
         const adkInitialPrompt = `Please gather context for projectId: ${projectId}. User prompt: ${prompt || "Generate a high-impact promotional video storyboard."}`;
-        let adkResponse = await chat.sendMessage({ message: adkInitialPrompt });
+        let adkResponse = await withRetry(() => chat.sendMessage({ message: adkInitialPrompt }));
 
         // Autonomous Tool Execution Loop
         let projectScraperSettings: any = null;
         let loopCount = 0;
         while (adkResponse.functionCalls && adkResponse.functionCalls.length > 0 && loopCount < 5) {
-            const functionResponses = [];
+            const functionResponses: any[] = [];
             
             for (const call of adkResponse.functionCalls) {
                 const name = call.name;
@@ -133,7 +162,8 @@ INSTRUCTIONS:
                 });
             }
             
-            adkResponse = await chat.sendMessage({ message: functionResponses });
+            adkResponse = await withRetry(() => chat.sendMessage({ message: functionResponses }));
+            console.log(`[Agent] Tool results sent. Next response type: ${adkResponse.functionCalls ? 'Tool Call' : 'Text'}`);
             loopCount++;
         }
 
@@ -165,8 +195,7 @@ INSTRUCTIONS:
 
         const enginePromptMap = {
             image: "Favor 'generate_image' for any missing visual assets. Focus on creating highly descriptive prompts for a high-quality static background that will have Ken Burns motion applied.",
-            hybrid: "Use 'generate_video' heavily for high-action scenes to invoke Veo 2's motion capabilities. Use 'generate_image' as a fallback for atmospheric or quiet scenes. Prompts for 'generate_video' must describe cinematic motion, camera moves, and physical interactions in extreme detail.",
-            cinematic: "Use 'generate_video' for ALL scenes to leverage Veo 3.1's full power. Provide ultra-detailed prompts including lighting, focal length, and character performance. Expect native audio synchronization."
+            cinematic: `Use 'generate_video' for ALL scenes to leverage Veo 3.1. Generate a cinematic story prompt based entirely on the project context and product narrative. Focus strongly on visual description, camera motion, and cinematic tone. Native Veo 3 audio is active, so you can leave voiceover.text empty if native audio fits better. STRICT LIMIT: Total storyboard duration must not exceed ${durationSetting} seconds.`
         };
 
         const systemPrompt = `
@@ -182,21 +211,71 @@ INSTRUCTIONS:
       Do NOT generate content that promotes hate speech, violence, illegal acts, sexual explicitness, or harassment. If the project context requests something prohibited, pivot to generating a generic, safe promotional video.
 
       INSTRUCTIONS:
-      Generate a sequence of scene blocks for a promotional video.
-      - Act as the "Cinematographer": Carefully select the \`transition\` type (e.g., fade, wipeleft, wiperight, slideup, slidedown, circlecrop) for seamless flow between scenes.
+      Generate a sequence of scene blocks for a promotional video, or a long-form blog post if the format is 'blog'.
+      
+      FOR BLOGS (if format specified in prompt):
+      - Create a unique, SEO-driven narrative that is NOT a repeat of previous generic templates.
+      - If a specific 'topic' or 'brief' is provided in the User Prompt, you MUST make it the central theme of the blog.
+      - Use the Brand Voice tokens to adjust tone and complexity.
+      - Aim for COMPREHENSIVENESS (at least 800-1200 words) with clear headings and structure.
+      
+      FOR VIDEOS (Cinematographer mode):
+      - ALLOCATE SCENE DURATIONS: You have a target approximate video duration of ${durationSetting} seconds. You MUST allocate appropriate \`duration\` (in seconds) to each scene block so their sum is within ±20% of ${durationSetting}.
+      - STYLE-BASED PACING GUIDELINES: 
+          - HOOK (~10-15s): Generate 2-3 high-impact, fast-paced scenes.
+          - PROMO (~30-45s): Generate 4-6 scenes with professional feature exposition.
+          - STORY (~60-120s): Generate 7-12 scenes with narrative depth and smooth build-up.
+      - PACING & BREATHING: Prioritize narrative flow and cinematic pacing. Narrators should have room to breathe; do NOT cram too much text into short scenes.
+      - VOICE CONSISTENCY: You MUST use a **strictly consistent** \`voiceover.tone\` and \`voiceover.pace\` across ALL scenes to ensure the narrator sounds like the same person throughout the video.
+      - ASSET MIXING RULE: You MUST prioritize using 'uploaded_asset' for any scene where the project assets (images provided) are relevant to the narrative. MIX uploaded assets with AI-generated visuals ('generate_image' or 'generate_video') to create a premium, product-focused video.
+      - Carefully select the \`transition\` type (e.g., fade, wipeleft, wiperight, slideup, slidedown, circlecrop) for seamless flow between scenes.
       - Apply cinematic \`camera_motion\` (e.g., zoom_in, zoom_out, pan_left, pan_right) for still images.
       - Configure \`subtitle_settings\` specifically for the voiceover.
-      - Give the narrator time to breathe: Ensure duration allows natural pacing.
+      - 🚨 STRICT VOICE OVER RULE: DO NOT use emojis, emoticons, or special characters in the \`voiceover.text\`. The narrator will read them out loud.
       
       For visual.base.source:
-      - prefer 'uploaded_asset' ONLY if an asset exists in the CREATIVE BRIEF list. 
-      - If you use 'uploaded_asset', you MUST reference it by its exact 20-character alphanumeric ID (e.g. 'abc123...'). 
-      - If no matching uploaded asset is found, use 'generate_image' or 'generate_video' based on the VIDEO ENGINE MODE above.
+      - Use 'uploaded_asset', 'generate_image', and 'generate_video' intelligently.
+      - If you use 'uploaded_asset', you MUST reference it by its exact 20-character alphanumeric ID from the CREATIVE BRIEF list.
       - IF the 'uploaded_asset' is a video, estimate 'start_time_seconds' and 'end_time_seconds'.
     `;
 
+        if (format === 'blog') {
+            console.log(`[Generate API] Mode: Blog. Starting generateObject pass with googleModel...`);
+            const { generateObject } = require('ai');
+            const { object } = await generateObject({
+                model: googleModel,
+                schema: blogSchema,
+                system: systemPrompt,
+                prompt: prompt || "Generate a high-impact promotional blog post.",
+            });
+            console.log(`[Generate API] Blog generation complete. Title: ${object.title}`);
+
+            // Persistence: Save to History
+            try {
+                const blogId = `blog_${Date.now()}`;
+                await db.collection(COLLECTIONS.PROJECTS)
+                    .doc(projectId)
+                    .collection('blogs')
+                    .doc(blogId)
+                    .set({
+                        ...object,
+                        id: blogId,
+                        createdAt: new Date().toISOString(),
+                        status: 'generated'
+                    });
+                console.log(`[Generate API] Blog persisted to ${projectId}/blogs/${blogId}`);
+            } catch (fsErr) {
+                console.error("[Generate API] Firestore persistence failed:", fsErr);
+            }
+
+            return new Response(JSON.stringify(object), {
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        console.log(`[Generate API] Mode: Video. Starting streamObject pass with googleModel...`);
         const result = await streamObject({
-            model: google('gemini-2.0-flash-exp'),
+            model: googleModel,
             schema: sceneBlockSchema,
             system: systemPrompt,
             messages: [

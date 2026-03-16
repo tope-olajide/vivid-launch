@@ -58,15 +58,12 @@ export function AppSidebar() {
     return (
         <Sidebar className="border-r border-border/50">
             <SidebarHeader className="p-4">
-                <Link href="/dashboard" className="flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500">
-                        <Sparkles className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
-                            VividLaunch
-                        </h1>
-                    </div>
+                <Link href="/dashboard" className="flex items-center group">
+                    <img 
+                        src="/logo.png" 
+                        alt="VividLaunch Logo" 
+                        className="h-10 w-auto object-contain transition-transform group-hover:scale-105" 
+                    />
                 </Link>
             </SidebarHeader>
 
@@ -147,7 +144,6 @@ export function AppSidebar() {
             <SidebarFooter className="p-4">
                 <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">v1.0.0</span>
-                    <ThemeToggle />
                 </div>
             </SidebarFooter>
         </Sidebar>

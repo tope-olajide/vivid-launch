@@ -69,7 +69,7 @@ async function generateVariant(
         : 'Focus on the TECHNICAL PROOF and data-driven results. Open with a striking statistic or achievement.';
 
     const { object } = await generateObject({
-        model: google('gemini-3-flash-preview'),
+        model: google('gemini-3.1-pro-preview'),
         schema: storyboardSchema,
         prompt: `You are a Creative Director AI generating a video storyboard.
 
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
         console.log(`[Variants API] Initiating context gathering loop for project ${projectId}...`);
         
         const chat = ai.chats.create({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-3.1-pro-preview',
             config: {
                 systemInstruction: `You are the Creative Director Researcher for VividLaunch. You compile project briefs so a video storyboard can be generated. 
 You have tools to fetch project context, assets, and scrape websites. 

@@ -1,0 +1,104 @@
+ M src/app/(dashboard)/dashboard/page.tsx
+ M src/app/(dashboard)/project/[projectId]/assets/page.tsx
+ M src/app/(dashboard)/project/[projectId]/manage/autopilot/page.tsx
+ M src/app/(dashboard)/project/[projectId]/studio/blog/page.tsx
+ M src/app/(dashboard)/project/[projectId]/studio/social/page.tsx
+ M src/app/(dashboard)/project/[projectId]/studio/video/page.tsx
+ M src/app/(dashboard)/projects/new/page.tsx
+ M src/app/(dashboard)/projects/page.tsx
+ M src/app/api/assets/route.ts
+ M src/app/api/projects/[projectId]/autopilot/route.ts
+ M src/app/api/studio/generate/route.ts
+ M src/app/api/studio/render/route.ts
+ M src/app/api/studio/social/route.ts
+ M src/app/api/studio/variants/route.ts
+ M src/app/layout.tsx
+ M src/components/app-sidebar.tsx
+ M src/components/navbar.tsx
+ M src/components/project-sidebar.tsx
+ M src/lib/agents/tools.ts
+ M src/lib/gcp/firestore.ts
+ M worker/assets.js
+ M worker/assets.ts
+ M worker/index.js
+ M worker/index.ts
+ D worker/test_asset_query.js
+ M worker/test_imagen.js
+ M worker/tmp/final_output.mp4
+ M worker/tmp/scene_0.mp4
+ M worker/tmp/scene_1.mp4
+ M worker/tmp/scene_2.mp4
+ M worker/tmp/scene_3.mp4
+ M worker/tmp/scene_4.mp4
+ M worker/tmp/scene_5.mp4
+ M worker/tmp/tts_0.mp3
+ M worker/tmp/tts_1.mp3
+ M worker/tmp/tts_2.mp3
+ M worker/tmp/tts_3.mp3
+ M worker/tmp/tts_4.mp3
+ M worker/tmp/tts_5.mp3
+?? hackathon-files/
+?? public/logo.png
+?? src/app/api/dashboard/
+?? src/app/api/projects/[projectId]/autopilot/events/
+?? src/app/api/projects/[projectId]/blogs/
+?? src/app/api/projects/[projectId]/socials/
+?? src/app/api/projects/[projectId]/strategy/
+?? src/app/api/projects/analyze-context/
+?? src/app/logo.png
+?? status.txt
+?? worker/tmp/fallback_1773683698001.mp4
+?? worker/tmp/fallback_1773683725940.mp4
+?? worker/tmp/fallback_1773683743043.mp4
+?? worker/tmp/fallback_1773683765982.mp4
+?? worker/tmp/fallback_1773683782569.mp4
+?? worker/tmp/fallback_1773686591903.mp4
+?? worker/tmp/fallback_veo_1773690077916.mp4
+?? worker/tmp/imagen_1773687664427.jpg
+?? worker/tmp/imagen_1773688220295.jpg
+?? worker/tmp/imagen_1773688679228.jpg
+?? worker/tmp/imagen_1773692566795.jpg
+?? worker/tmp/imagen_1773692618842.jpg
+?? worker/tmp/imagen_1773692655184.jpg
+?? worker/tmp/imagen_1773692694197.jpg
+?? worker/tmp/imagen_1773692728360.jpg
+?? worker/tmp/imagen_1773693404039.jpg
+?? worker/tmp/imagen_1773694563282.jpg
+?? worker/tmp/imagen_1773694597833.jpg
+?? worker/tmp/imagen_1773694680562.jpg
+?? worker/tmp/imagen_1773694718735.jpg
+?? worker/tmp/scene_6.mp4
+?? worker/tmp/scene_7.mp4
+?? worker/tmp/tts_6.mp3
+?? worker/tmp/tts_7.mp3
+?? worker/tmp/uploaded_1773688704941.jpg
+?? worker/tmp/uploaded_1773688731692.jpg
+?? worker/tmp/uploaded_1773688758425.jpg
+?? worker/tmp/uploaded_1773688771858.jpg
+?? worker/tmp/uploaded_1773688794651.jpg
+?? worker/tmp/uploaded_1773689521466.jpg
+?? worker/tmp/uploaded_1773689544008.jpg
+?? worker/tmp/uploaded_1773689556851.jpg
+?? worker/tmp/uploaded_1773689570858.jpg
+?? worker/tmp/uploaded_1773690087461.jpg
+?? worker/tmp/uploaded_1773690106400.jpg
+?? worker/tmp/uploaded_1773690120486.jpg
+?? worker/tmp/uploaded_1773690133435.jpg
+?? worker/tmp/uploaded_1773690146772.jpg
+?? worker/tmp/uploaded_1773693453482.jpg
+?? worker/tmp/uploaded_1773693471198.jpg
+?? worker/tmp/uploaded_1773693484590.jpg
+?? worker/tmp/uploaded_1773694628250.jpg
+?? worker/tmp/uploaded_1773694647583.jpg
+?? worker/tmp/uploaded_1773694657425.jpg
+?? worker/tmp/uploaded_1773694668632.jpg
+?? worker/tmp/uploaded_fallback_1773687694682.jpg
+?? worker/tmp/uploaded_fallback_1773687726390.jpg
+?? worker/tmp/uploaded_fallback_1773687764380.jpg
+?? worker/tmp/uploaded_fallback_1773687800564.jpg
+?? worker/tmp/uploaded_fallback_1773687832889.jpg
+?? worker/tmp/uploaded_fallback_1773688252978.jpg
+?? worker/tmp/uploaded_fallback_1773688284777.jpg
+?? worker/tmp/uploaded_fallback_1773688317136.jpg
+?? worker/tmp/uploaded_fallback_1773688344988.jpg
+?? worker/tmp/uploaded_fallback_1773688376220.jpg

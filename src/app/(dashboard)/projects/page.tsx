@@ -136,86 +136,73 @@ export default function ProjectsPage() {
                     variants={container}
                     initial="hidden"
                     animate="show"
-                >                    {projects.map((project) => (
+                >
+                    {projects.map((project) => (
                         <motion.div key={project.id} variants={item}>
-                            <Card className="relative overflow-hidden border-border/40 bg-card/40 backdrop-blur-xl hover:border-violet-500/40 transition-all duration-300 group h-full shadow-lg shadow-black/5 hover:shadow-violet-500/10 active:scale-[0.98]">
+                            <Card className="group relative overflow-hidden border-border/40 bg-card/40 backdrop-blur-xl hover:border-violet-500/50 transition-all duration-300 h-full shadow-lg shadow-black/5 hover:-translate-y-1">
                                 <Link href={`/project/${project.id}`} className="block h-full">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                     
-                                    <CardContent className="p-6 space-y-5 flex flex-col h-full relative z-10">
-                                        {/* Top: Name & Status */}
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="space-y-1.5 flex-1 min-w-0">
-                                                <h3 className="font-bold text-lg leading-tight tracking-tight group-hover:text-violet-400 transition-colors truncate">
-                                                    {project.name}
-                                                </h3>
-                                                <p className="text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed italic">
-                                                    "{project.tagline || project.description}"
+                                    <CardContent className="p-6 flex flex-col h-full relative z-10">
+                                        {/* Header: Avatar & Name */}
+                                        <div className="flex items-center gap-4 mb-5">
+                                            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shrink-0 shadow-lg shadow-violet-600/20 group-hover:scale-110 transition-transform duration-500">
+                                                <span className="text-2xl font-black text-white uppercase select-none">
+                                                    {project.name.charAt(0)}
+                                                </span>
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <h3 className="font-bold text-lg leading-tight tracking-tight group-hover:text-violet-400 transition-colors truncate">
+                                                        {project.name}
+                                                    </h3>
+                                                    <Badge className="bg-violet-500/10 text-violet-400 border-none text-[8px] font-black uppercase shrink-0">
+                                                        {project.status || "draft"}
+                                                    </Badge>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground/60 italic font-medium truncate mt-0.5">
+                                                    {project.tagline || "Strategic Creative Direction"}
                                                 </p>
                                             </div>
-                                            <div className="flex flex-col items-end gap-2">
-                                                <Badge
-                                                    variant={project.status === "active" ? "default" : "secondary"}
-                                                    className={`text-[10px] px-2 py-0 border-none uppercase font-bold tracking-wider ${
-                                                        project.status === 'active' 
-                                                            ? 'bg-green-500/20 text-green-400 animate-pulse' 
-                                                            : 'bg-amber-500/20 text-amber-400'
-                                                    }`}
-                                                >
-                                                    {project.status || "draft"}
-                                                </Badge>
+                                        </div>
+
+                                        {/* Body: Description & Audience */}
+                                        <div className="space-y-4 flex-1">
+                                            <p className="text-sm text-muted-foreground/80 line-clamp-2 leading-relaxed h-10">
+                                                {project.description}
+                                            </p>
+                                            
+                                            <div className="flex flex-wrap gap-1.5 min-h-[1.5rem]">
+                                                {project.targetAudience?.split(',').slice(0, 3).map((tag, idx) => (
+                                                    <Badge 
+                                                        key={idx} 
+                                                        variant="outline" 
+                                                        className="text-[9px] py-0 px-2 bg-violet-500/5 border-violet-500/20 text-violet-300/70 whitespace-nowrap"
+                                                    >
+                                                        {tag.trim()}
+                                                    </Badge>
+                                                ))}
+                                                {(!project.targetAudience || project.targetAudience.length === 0) && (
+                                                    <span className="text-[10px] text-muted-foreground/30 italic">No audience tags</span>
+                                                )}
                                             </div>
                                         </div>
 
-                                        {/* Flowing Tags: Individual badges for audience */}
-                                        <div className="flex flex-wrap gap-1.5 h-12 overflow-hidden items-start">
-                                            {project.targetAudience?.split(',').map((tag, idx) => (
-                                                <Badge 
-                                                    key={idx} 
-                                                    variant="outline" 
-                                                    className="text-[10px] py-0 bg-violet-500/5 border-violet-500/20 text-violet-300 whitespace-nowrap"
-                                                >
-                                                    {tag.trim()}
-                                                </Badge>
-                                            ))}
-                                            {(!project.targetAudience || project.targetAudience.length === 0) && (
-                                                <Badge variant="outline" className="text-[10px] py-0 opacity-30 italic">No audience set</Badge>
-                                            )}
-                                        </div>
-
-                                        {/* Action Bar (Strong Persistent Buttons) */}
-                                        <div className="flex items-center gap-2 mt-auto pt-4 border-t border-border/20" onClick={(e) => e.stopPropagation()}>
-                                            <Button asChild variant="secondary" className="flex-1 h-9 gap-2 bg-violet-600/10 hover:bg-violet-600 hover:text-white transition-all border-none">
-                                                <Link href={`/project/${project.id}/studio/video`}>
-                                                    <Video className="h-4 w-4" />
-                                                    <span className="text-xs font-bold uppercase tracking-tight">Video</span>
-                                                </Link>
-                                            </Button>
-                                            <Button asChild variant="secondary" className="flex-1 h-9 gap-2 bg-fuchsia-600/10 hover:bg-fuchsia-600 hover:text-white transition-all border-none">
-                                                <Link href={`/project/${project.id}/studio/blog`}>
-                                                    <FileText className="h-4 w-4" />
-                                                    <span className="text-xs font-bold uppercase tracking-tight">Blog</span>
-                                                </Link>
-                                            </Button>
-                                            <Button asChild size="icon" variant="ghost" className="h-9 w-9 text-muted-foreground/60 hover:text-white hover:bg-white/10 shrink-0">
-                                                <Link href={`/project/${project.id}/manage/autopilot`}>
-                                                    <Settings className="h-4 w-4" />
-                                                </Link>
-                                            </Button>
-                                        </div>
-                                        
-                                        <div className="flex items-center justify-between pt-2">
-                                            <span className="text-[9px] text-muted-foreground/50 flex items-center gap-1 uppercase tracking-tighter">
-                                                <Clock className="h-2.5 w-2.5" />
-                                                Last Updated: {formatDate(project.createdAt)}
-                                            </span>
+                                        {/* Footer: Date & Navigation */}
+                                        <div className="flex items-center justify-between pt-5 mt-auto border-t border-border/10">
+                                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/50 uppercase tracking-wider font-bold">
+                                                <Clock className="h-3 w-3" />
+                                                <span>{formatDate(project.createdAt)}</span>
+                                            </div>
+                                            <div className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-all duration-300">
+                                                <ExternalLink className="h-4 w-4" />
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Link>
                             </Card>
                         </motion.div>
                     ))}
-
                 </motion.div>
             )}
         </motion.div>

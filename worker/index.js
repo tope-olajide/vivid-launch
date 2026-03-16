@@ -69,7 +69,7 @@ projectId) {
         const ext = uri.includes('.mp4') ? 'mp4' : 'jpg';
         const dest = path.join(WORK_DIR, `uploaded_${Date.now()}.${ext}`);
         try {
-            return await (0, assets_1.downloadFromGCS)(uri, dest);
+            return await (0, assets_1.downloadFromGCS)(uri, dest, projectId);
         }
         catch (err) {
             if (err.message.includes('ASSET_NOT_FOUND')) {
@@ -142,7 +142,7 @@ async function renderScene(scene, index, aspectRatio = '16:9', projectId) {
     // 2. Synthesize TTS
     const ttsFileName = `tts_${index}.mp3`;
     const ttsPath = path.join(WORK_DIR, ttsFileName);
-    console.log(`🎙️ Synthesizing Voiceover: "${scene.voiceover.text}"`);
+    console.log(`🎙️ [Google Cloud TTS] Synthesizing Voiceover: "${scene.voiceover.text}"`);
     const audioBuffer = await (0, tts_1.generateTTS)(scene.voiceover.text, scene.voiceover.tone);
     fs.writeFileSync(ttsPath, audioBuffer);
     // 2.5 Compute Audio Duration & Add Pacing
