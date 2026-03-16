@@ -66,7 +66,8 @@ function VideoStudioContent() {
     const params = useParams();
     const projectId = params.projectId as string;
     const [aspectRatio, setAspectRatio] = useState<"16:9" | "9:16">("16:9");
-    const [videoEngine, setVideoEngine] = useState<"image" | "hybrid" | "cinematic">("image");
+    const [videoEngine, setVideoEngine] = useState<"image" | "cinematic" | null>(null);
+    const [targetDuration, setTargetDuration] = useState<number | null>(null);
     const [isRendering, setIsRendering] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -116,9 +117,15 @@ function VideoStudioContent() {
 
     const handleGenerate = () => {
         if (!projectId) { toast.error("No project context."); return; }
+        if (!videoEngine || !targetDuration) {
+            toast.error("Selection Required", {
+                description: "Please select both a Video Generation Engine and a Video Style before proceeding.",
+            });
+            return;
+        }
         setVideoUrl(null);
         setLocalScenes([]);
-        submit({ projectId, prompt: "Generate a high-impact promotional video storyboard.", videoEngine });
+        submit({ projectId, prompt: "Generate a high-impact promotional video storyboard.", videoEngine, targetDuration });
     };
 
     // Save scenes to Firestore whenever they change (debounce or manual)
@@ -277,37 +284,16 @@ function VideoStudioContent() {
                                         )}
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span className={cn("text-xs font-black uppercase tracking-tight", videoEngine === "image" ? "text-violet-400" : "text-zinc-400")}>Option A — Pulse</span>
+                                            <span className={cn("text-xs font-black uppercase tracking-tight", videoEngine === "image" ? "text-violet-400" : "text-zinc-400")}>Image-based — Motion Stills</span>
                                             <Badge variant="outline" className="text-[8px] h-4 border-none bg-emerald-500/10 text-emerald-400 font-black">LOW COST</Badge>
                                         </div>
-                                        <p className="text-[10px] text-muted-foreground leading-tight italic">Image-based dynamic slideshow (Imagen 3). Fast & efficient.</p>
+                                        <p className="text-[10px] text-muted-foreground leading-tight italic">AI-driven dynamic slideshow (Imagen 3). Fast, reliable, and high clarity.</p>
                                     </button>
 
-                                    {/* Option B */}
-                                    <button 
-                                        onClick={() => setVideoEngine("hybrid")}
-                                        className={cn(
-                                            "flex flex-col gap-1 p-4 rounded-2xl border transition-all text-left group",
-                                            videoEngine === "hybrid" 
-                                                ? "bg-fuchsia-600/10 border-fuchsia-500/50 shadow-[0_0_20px_rgba(217,70,239,0.1)]" 
-                                                : "bg-zinc-900/50 border-white/5 hover:bg-zinc-900 hover:border-white/10"
-                                        )}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <span className={cn("text-xs font-black uppercase tracking-tight", videoEngine === "hybrid" ? "text-fuchsia-400" : "text-zinc-400")}>Option B — Hybrid</span>
-                                            <Badge variant="outline" className="text-[8px] h-4 border-none bg-fuchsia-500/10 text-fuchsia-400 font-black">MEDIUM COST</Badge>
-                                        </div>
-                                        <p className="text-[10px] text-muted-foreground leading-tight italic">AI Video clips (Veo 2) + Fallback images. Balanced motion.</p>
-                                    </button>
-
-                                    {/* Option C */}
+                                    {/* Option B (formerly C) */}
                                     <button 
                                         onClick={() => {
-                                            // Simulated credit check for Option C
-                                            toast.info("Checking API Credits for Veo 3.1...");
-                                            setTimeout(() => {
-                                                setVideoEngine("cinematic");
-                                            }, 500);
+                                            setVideoEngine("cinematic");
                                         }}
                                         className={cn(
                                             "flex flex-col gap-1 p-4 rounded-2xl border transition-all text-left group",
@@ -317,15 +303,42 @@ function VideoStudioContent() {
                                         )}
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span className={cn("text-xs font-black uppercase tracking-tight", videoEngine === "cinematic" ? "text-amber-400" : "text-zinc-400")}>Option C — Cinematic</span>
-                                            <Badge variant="outline" className="text-[8px] h-4 border-none bg-amber-500/10 text-amber-400 font-black">HIGH COST</Badge>
+                                            <span className={cn("text-xs font-black uppercase tracking-tight", videoEngine === "cinematic" ? "text-amber-400" : "text-zinc-400")}>Video-based — Cinematic AI</span>
+                                            <Badge variant="outline" className="text-[8px] h-4 border-none bg-amber-500/10 text-amber-400 font-black">PREMIUM</Badge>
                                         </div>
-                                        <p className="text-[10px] text-muted-foreground leading-tight italic">Full Veo 3.1 generation with native synced audio. Maximum quality.</p>
+                                        <p className="text-[10px] text-muted-foreground leading-tight italic">Full Veo 3.1 generation with native synced audio. Maximum cinematic impact.</p>
                                     </button>
                                 </div>
                             </div>
+                            
+                            <div className="space-y-4 pt-2 border-t border-border/10">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Video Style & Pacing</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                        { val: 15, label: "Hook", approx: "~10-15s", desc: "Short & Punchy" },
+                                        { val: 40, label: "Promo", approx: "~30-45s", desc: "Feature Explainer" },
+                                        { val: 90, label: "Story", approx: "~1-2 min", desc: "Deep Narrative" },
+                                        { val: 180, label: "Masterclass", approx: "~3m+", desc: "Full Presentation" }
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.val}
+                                            onClick={() => setTargetDuration(opt.val)}
+                                            className={cn(
+                                                "flex flex-col items-center justify-center p-3 rounded-2xl border transition-all group",
+                                                targetDuration === opt.val 
+                                                    ? "bg-violet-600/10 border-violet-500/50 shadow-[0_0_15px_rgba(139,92,246,0.1)]" 
+                                                    : "bg-zinc-900/50 border-white/5 hover:bg-zinc-900 hover:border-white/10"
+                                            )}
+                                        >
+                                            <span className={cn("text-[10px] font-black uppercase tracking-tight", targetDuration === opt.val ? "text-violet-400" : "text-zinc-500")}>{opt.label}</span>
+                                            <span className="text-[8px] text-muted-foreground italic mb-1">{opt.approx}</span>
+                                            <span className="text-[7px] text-zinc-400 font-bold uppercase tracking-tighter block opacity-60 leading-tight text-center px-1">{opt.desc}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-3 pt-2">
                                 <Button
                                     className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-violet-500/20"
                                     onClick={handleGenerate}
@@ -431,8 +444,8 @@ function VideoStudioContent() {
 
                 {/* Center: Preview / Live Stream Panel */}
                 <div className="lg:col-span-2">
-                    <Card className="border-border/10 bg-card/40 backdrop-blur-xl h-full border-t-4 border-t-violet-500">
-                        <CardContent className="p-8 h-full flex flex-col">
+                    <Card className="border-border/10 bg-card/40 backdrop-blur-xl border-t-4 border-t-violet-500 overflow-hidden">
+                        <CardContent className="p-8 flex flex-col">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center">
@@ -455,7 +468,7 @@ function VideoStudioContent() {
                                     </button>
                                 </div>
                             </div>
-                            <div className={`flex-1 min-h-[500px] rounded-[2rem] bg-zinc-950 border-8 border-zinc-900 shadow-2xl flex items-center justify-center transition-all duration-700 overflow-hidden relative group ${aspectRatio === "9:16" ? "mx-auto max-w-[320px] aspect-[9/16]" : "w-full aspect-video"}`}>
+                            <div className={`flex-1 min-h-[250px] md:min-h-[300px] lg:max-h-[50vh] rounded-[2rem] bg-zinc-950 border-8 border-zinc-900 shadow-2xl flex items-center justify-center transition-all duration-700 overflow-hidden relative group ${aspectRatio === "9:16" ? "mx-auto max-w-[240px] aspect-[9/16]" : "w-full aspect-video"}`}>
                                 <div className="absolute inset-0 bg-gradient-to-t from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                 
                                 {videoUrl ? (

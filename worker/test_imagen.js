@@ -1,7 +1,7 @@
 require('dotenv').config({ path: '.env.local' });
 const GCP_PROJECT = process.env.GCP_PROJECT_ID;
 const location = 'us-central1';
-const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${location}/publishers/google/models/imagen-3.0-generate-001:predict`;
+const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${GCP_PROJECT}/locations/${location}/publishers/google/models/imagen-3.0-generate-002:predict`;
 console.log("Endpoint:", endpoint);
 
 async function testImagen() {

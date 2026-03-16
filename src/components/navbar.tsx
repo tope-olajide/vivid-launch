@@ -28,13 +28,12 @@ export function Navbar() {
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
             <div className="container flex h-16 items-center justify-between px-6 mx-auto">
                 <div className="flex items-center gap-8">
-                    <Link href="/dashboard" className="flex items-center gap-2.5 group">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-500/20 group-hover:scale-110 transition-transform">
-                            <Sparkles className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="text-xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-                            VividLaunch
-                        </span>
+                    <Link href="/dashboard" className="flex items-center group">
+                        <img 
+                            src="/logo.png" 
+                            alt="VividLaunch Logo" 
+                            className="h-10 w-auto object-contain group-hover:scale-105 transition-transform" 
+                        />
                     </Link>
 
                     <nav className="hidden md:flex items-center gap-1">
@@ -68,7 +67,6 @@ export function Navbar() {
                             New Project
                         </Link>
                     </Button>
-                    <ThemeToggle />
                 </div>
             </div>
         </header>

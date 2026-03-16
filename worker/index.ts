@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import ffmpeg = require('fluent-ffmpeg');
 const mp3Duration = require('mp3-duration');
 import { generateTTS } from './tts';
-import { downloadFromGCS, generateImagenImage } from './assets';
+import { downloadFromGCS, generateImagenImage, generateVeoVideo } from './assets';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
@@ -46,11 +46,21 @@ async function resolveAndDownloadAsset(
 
         const ext  = uri.includes('.mp4') ? 'mp4' : 'jpg';
         const dest = path.join(WORK_DIR, `uploaded_${Date.now()}.${ext}`);
-        return await downloadFromGCS(uri, dest);
+        
+        try {
+            return await downloadFromGCS(uri, dest, projectId);
+        } catch (err: any) {
+            if (err.message.includes('ASSET_NOT_FOUND')) {
+                console.warn(`⚠️  Asset ${uri} not found in Firestore. Falling back to AI Generation...`);
+                // Fall through to AI Generation below
+            } else {
+                throw err;
+            }
+        }
     }
 
     // ── 2. AI-generated image (Vertex AI Imagen) ────────────────────────────
-    if (source === 'generate_image') {
+    if (source === 'generate_image' || source === 'uploaded_asset') { // Support fallback for uploaded_asset
         const imgPrompt = prompt || 'cinematic background';
         
         try {
@@ -59,6 +69,20 @@ async function resolveAndDownloadAsset(
         } catch (err: any) {
             console.warn(`⚠️  Imagen fallback (${err.message}). Using solid-color clip.`);
             const fallbackDest = path.join(WORK_DIR, `fallback_${Date.now()}.mp4`);
+            return await createSolidColorVideo(fallbackDest, duration, 'black');
+        }
+    }
+
+    // ── 3. AI-generated video (Vertex AI Veo 3.1) ───────────────────────────
+    if (source === 'generate_video') {
+        const videoPrompt = prompt || 'cinematic motion background';
+        
+        try {
+            const dest = path.join(WORK_DIR, `veo_${Date.now()}.mp4`);
+            return await generateVeoVideo(videoPrompt, dest, duration);
+        } catch (err: any) {
+            console.warn(`⚠️  Veo fallback (${err.message}). Using solid-color clip.`);
+            const fallbackDest = path.join(WORK_DIR, `fallback_veo_${Date.now()}.mp4`);
             return await createSolidColorVideo(fallbackDest, duration, 'black');
         }
     }

@@ -1,0 +1,903 @@
+
+============================
+🎬 Rendering Scene 1... [16:9]
+============================
+DEBUG: Calling Imagen 3 Stable at: https://us-central1-aiplatform.googleapis.com/v1/projects/vividlaunch/locations/us-central1/publishers/google/models/imagen-3.0-generate-002:predict
+🖼️  [Vertex AI] Imagen 3 Generation (Stable): "Cinematic shot of a stressed developer looking at multiple glowing monitors late..."
+   ✅ Generated image saved to C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694563282.jpg
+   🗃️ Saving Generated Image to Asset Library...
+✓ Compiled in 2.8s
+   ✅ Image added to Asset Library
+🎙️ [Google Cloud TTS] Synthesizing Voiceover: "You built an amazing product. But marketing it? That is a whole different beast."
+⏱️ TTS Audio Length: 5.33s
+⏱️ Final Scene Duration: 7.83s
+⚙️ Running FFmpeg compositor directly via spawn...
+FFmpeg Execution Args: -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694563282.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_0.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='min(zoom+0.0015,1.5)':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=235:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='The Marketing Struggle': fontcolor=yellow: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 7.828 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_0.mp4"
+FFmpeg Path: C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe
+Executing via execSync: "C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe" -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694563282.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_0.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='min(zoom+0.0015,1.5)':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=235:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='The Marketing Struggle': fontcolor=yellow: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 7.828 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_0.mp4"
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Fontconfig error: Cannot load default config file: No such file: (null)
+Input #0, image2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694563282.jpg':
+  Duration: 00:00:00.04, start: 0.000000, bitrate: 61929 kb/s
+  Stream #0:0: Video: mjpeg (Baseline), yuvj420p(pc, bt470bg/unknown/unknown), 1408x768 [SAR 1:1 DAR 11:6], 25 fps, 25 tbr, 25 tbn
+[mp3 @ 0000020f208e5380] Estimating duration from bitrate, this may be inaccurate
+Input #1, mp3, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_0.mp3':
+  Duration: 00:00:05.33, start: 0.000000, bitrate: 32 kb/s
+  Stream #1:0: Audio: mp3, 24000 Hz, mono, fltp, 32 kb/s
+Stream mapping:
+  Stream #0:0 (mjpeg) -> scale:default
+  Stream #1:0 (mp3float) -> apad:default
+  drawtext:default -> Stream #0:0 (libx264)
+  apad:default -> Stream #0:1 (aac)
+Press [q] to stop, [?] for help
+Fontconfig error: Cannot load default config file: No such file: (null)
+[swscaler @ 0000020f20970740] deprecated pixel format used, make sure you did set range correctly
+    Last message repeated 3 times
+[libx264 @ 0000020f20957680] using SAR=1/1
+[libx264 @ 0000020f20957680] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 0000020f20957680] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0000020f20957680] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:-3:-3 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=2.00:0.70 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-4 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.20
+[aac @ 0000020f20959040] Too many bits 8192.000000 > 6144 per frame requested, clamping to max
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_0.mp4':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 144 kb/s
+    Metadata:
+      encoder         : Lavc60.31.102 aac
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.93 bitrate=   0frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.40 bitrate=   0frame=    8 fps=4.8 q=29.0 size=       0kB time=00:00:02.00 bitrate=   frame=   27 fps= 12 q=29.0 size=     256kB time=00:00:02.60 bitrate= 80frame=   47 fps= 17 q=29.0 size=     512kB time=00:00:03.28 bitrate=127frame=   65 fps= 20 q=29.0 size=     512kB time=00:00:03.88 bitrate=108frame=   84 fps= 23 q=29.0 size=     768kB time=00:00:04.52 bitrate=139frame=  104 fps= 25 q=29.0 size=    1024kB time=00:00:05.16 bitrate=162frame=  122 fps= 26 q=29.0 size=    1024kB time=00:00:06.01 bitrate=139frame=  141 fps= 27 q=29.0 size=    1280kB time=00:00:06.69 bitrate=156frame=  161 fps= 28 q=29.0 size=    1536kB time=00:00:07.21 bitrate=174frame=  177 fps= 28 q=29.0 size=    1536kB time=00:00:07.68 bitrate=163[mp4 @ 0000020f209556c0] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0000020f209552c0] video:2124kB audio:60kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.344649%
+frame=  235 fps= 32 q=-1.0 Lsize=    2191kB time=00:00:07.80 bitrate=2299.1kbits/s speed=1.07x
+[libx264 @ 0000020f20957680] frame I:1     Avg QP:19.75  size: 97751
+[libx264 @ 0000020f20957680] frame P:59    Avg QP:19.47  size: 21432
+[libx264 @ 0000020f20957680] frame B:175   Avg QP:22.62  size:  4638
+[libx264 @ 0000020f20957680] consecutive B-frames:  0.4%  0.9%  0.0% 98.7%
+[libx264 @ 0000020f20957680] mb I  I16..4: 13.0% 61.6% 25.4%
+[libx264 @ 0000020f20957680] mb P  I16..4:  0.3%  0.6%  0.0%  P16..4: 38.2%  9.7% 11.1%  0.0%  0.0%    skip:40.2%
+[libx264 @ 0000020f20957680] mb B  I16..4:  0.0%  0.0%  0.0%  B16..8: 37.5%  0.5%  0.1%  direct: 0.1%  skip:61.7%  L0:48.3% L1:48.1% BI: 3.6%
+[libx264 @ 0000020f20957680] 8x8 transform intra:60.5% inter:94.9%
+[libx264 @ 0000020f20957680] coded y,uvDC,uvAC intra: 55.5% 69.8% 45.7% inter: 7.6% 8.8% 0.5%
+[libx264 @ 0000020f20957680] i16 v,h,dc,p: 21% 53%  8% 18%
+[libx264 @ 0000020f20957680] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 26% 24% 24%  3%  5%  4%  7%  3%  5%
+[libx264 @ 0000020f20957680] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 30% 30% 10%  4%  7%  5%  7%  3%  4%
+[libx264 @ 0000020f20957680] i8c dc,h,v,p: 47% 31% 19%  4%
+[libx264 @ 0000020f20957680] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 0000020f20957680] ref P L0: 58.6% 11.1% 23.5%  6.8%
+[libx264 @ 0000020f20957680] ref B L0: 85.0% 13.8%  1.1%
+[libx264 @ 0000020f20957680] ref B L1: 93.5%  6.5%
+[libx264 @ 0000020f20957680] kb/s:2220.08
+[aac @ 0000020f20959040] Qavg: 64175.703
+✅ Scene 1 rendered successfully -> C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_0.mp4
+
+============================
+🎬 Rendering Scene 2... [16:9]
+============================
+DEBUG: Calling Imagen 3 Stable at: https://us-central1-aiplatform.googleapis.com/v1/projects/vividlaunch/locations/us-central1/publishers/google/models/imagen-3.0-generate-002:predict
+🖼️  [Vertex AI] Imagen 3 Generation (Stable): "Abstract 3D rendering of overwhelming social media icons and digital content fly..."
+   ✅ Generated image saved to C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694597833.jpg
+   🗃️ Saving Generated Image to Asset Library...
+   ✅ Image added to Asset Library
+🎙️ [Google Cloud TTS] Synthesizing Voiceover: "Stuck on the content treadmill while your code gathers dust?"
+⏱️ TTS Audio Length: 2.98s
+⏱️ Final Scene Duration: 5.48s
+⚙️ Running FFmpeg compositor directly via spawn...
+FFmpeg Execution Args: -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694597833.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_1.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='1.2':x='min((on-1)*((iw-iw/zoom)/165),iw-iw/zoom)':y='(ih/2)-(ih/zoom/2)':d=165:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='The Content Treadmill': fontcolor=yellow: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 5.476 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_1.mp4"
+FFmpeg Path: C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe
+Executing via execSync: "C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe" -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694597833.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_1.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='1.2':x='min((on-1)*((iw-iw/zoom)/165),iw-iw/zoom)':y='(ih/2)-(ih/zoom/2)':d=165:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='The Content Treadmill': fontcolor=yellow: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 5.476 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_1.mp4"
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Fontconfig error: Cannot load default config file: No such file: (null)
+Input #0, image2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694597833.jpg':
+  Duration: 00:00:00.04, start: 0.000000, bitrate: 86467 kb/s
+  Stream #0:0: Video: mjpeg (Baseline), yuvj420p(pc, bt470bg/unknown/unknown), 1408x768 [SAR 1:1 DAR 11:6], 25 fps, 25 tbr, 25 tbn
+[mp3 @ 0000018f5eb83480] Estimating duration from bitrate, this may be inaccurate
+Input #1, mp3, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_1.mp3':
+  Duration: 00:00:02.98, start: 0.000000, bitrate: 32 kb/s
+  Stream #1:0: Audio: mp3, 24000 Hz, mono, fltp, 32 kb/s
+Stream mapping:
+  Stream #0:0 (mjpeg) -> scale:default
+  Stream #1:0 (mp3float) -> apad:default
+  drawtext:default -> Stream #0:0 (libx264)
+  apad:default -> Stream #0:1 (aac)
+Press [q] to stop, [?] for help
+Fontconfig error: Cannot load default config file: No such file: (null)
+[swscaler @ 0000018f5eb91f00] deprecated pixel format used, make sure you did set range correctly
+    Last message repeated 3 times
+[libx264 @ 0000018f5ef96340] using SAR=1/1
+[libx264 @ 0000018f5ef96340] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 0000018f5ef96340] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0000018f5ef96340] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:-3:-3 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=2.00:0.70 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-4 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.20
+[aac @ 0000018f5ef97f40] Too many bits 8192.000000 > 6144 per frame requested, clamping to max
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_1.mp4':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 144 kb/s
+    Metadata:
+      encoder         : Lavc60.31.102 aac
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.46 bitrate=   0frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.40 bitrate=   0frame=   15 fps=8.9 q=29.0 size=     256kB time=00:00:02.21 bitrate= 94frame=   42 fps= 19 q=29.0 size=     256kB time=00:00:03.32 bitrate= 63frame=   65 fps= 24 q=29.0 size=     256kB time=00:00:04.18 bitrate= 50frame=  103 fps= 32 q=29.0 size=     256kB time=00:00:05.33 bitrate= 39[mp4 @ 0000018f5ef95280] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0000018f5ef95140] video:527kB audio:40kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 1.004763%
+frame=  164 fps= 42 q=-1.0 Lsize=     572kB time=00:00:05.46 bitrate= 858.1kbits/s speed=1.39x
+[libx264 @ 0000018f5ef96340] frame I:1     Avg QP:18.66  size:212355
+[libx264 @ 0000018f5ef96340] frame P:46    Avg QP:18.68  size:  5418
+[libx264 @ 0000018f5ef96340] frame B:117   Avg QP:23.30  size:   657
+[libx264 @ 0000018f5ef96340] consecutive B-frames:  1.2% 11.0%  0.0% 87.8%
+[libx264 @ 0000018f5ef96340] mb I  I16..4:  7.4% 59.3% 33.3%
+[libx264 @ 0000018f5ef96340] mb P  I16..4:  0.1%  0.3%  0.1%  P16..4:  7.9%  1.6%  1.8%  0.0%  0.0%    skip:88.2%
+[libx264 @ 0000018f5ef96340] mb B  I16..4:  0.0%  0.0%  0.0%  B16..8:  8.6%  0.1%  0.0%  direct: 0.0%  skip:91.3%  L0:43.9% L1:54.6% BI: 1.5%
+[libx264 @ 0000018f5ef96340] 8x8 transform intra:58.5% inter:78.8%
+[libx264 @ 0000018f5ef96340] coded y,uvDC,uvAC intra: 80.3% 96.3% 88.1% inter: 1.0% 1.1% 0.3%
+[libx264 @ 0000018f5ef96340] i16 v,h,dc,p:  9% 40%  0% 51%
+[libx264 @ 0000018f5ef96340] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu:  9% 32%  9%  5%  8%  6% 17%  5%  9%
+[libx264 @ 0000018f5ef96340] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 15% 29%  8%  6% 11%  7% 12%  5%  7%
+[libx264 @ 0000018f5ef96340] i8c dc,h,v,p: 36% 36% 14% 14%
+[libx264 @ 0000018f5ef96340] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 0000018f5ef96340] ref P L0: 83.6%  5.0%  8.8%  2.6%
+[libx264 @ 0000018f5ef96340] ref B L0: 97.5%  2.2%  0.3%
+[libx264 @ 0000018f5ef96340] ref B L1: 98.7%  1.3%
+[libx264 @ 0000018f5ef96340] kb/s:788.00
+[aac @ 0000018f5ef97f40] Qavg: 60509.137
+✅ Scene 2 rendered successfully -> C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_1.mp4
+
+============================
+🎬 Rendering Scene 3... [16:9]
+============================
+🔍 Resolving asset_id: dFzYvmBOZwzldwgpAvjl via Firestore...
+   ↳ Resolved to: https://storage.googleapis.com/vividlaunch-assets/projects/lcipoPomI5Efg8CHUvwK/1773666562857_vividlaunch-logo.png
+📥 GCS download: gs://vividlaunch-assets/projects/lcipoPomI5Efg8CHUvwK/1773666562857_vividlaunch-logo.png → C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694628250.jpg
+🎙️ [Google Cloud TTS] Synthesizing Voiceover: "Meet VividLaunch. Your autonomous AI Creative Director."
+⏱️ TTS Audio Length: 3.65s
+⏱️ Final Scene Duration: 6.15s
+⚙️ Running FFmpeg compositor directly via spawn...
+FFmpeg Execution Args: -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694628250.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_2.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='if(eq(on,1),1.5,max(1.0,zoom-0.0015))':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=185:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='VividLaunch': fontcolor=white: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 6.148 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_2.mp4"
+FFmpeg Path: C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe
+Executing via execSync: "C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe" -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694628250.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_2.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='if(eq(on,1),1.5,max(1.0,zoom-0.0015))':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=185:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='VividLaunch': fontcolor=white: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 6.148 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_2.mp4"
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Fontconfig error: Cannot load default config file: No such file: (null)
+Input #0, png_pipe, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694628250.jpg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgb24(pc, gbr/unknown/unknown), 1536x1024, 25 fps, 25 tbr, 25 tbn
+[mp3 @ 0000025b017aa940] Estimating duration from bitrate, this may be inaccurate
+Input #1, mp3, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_2.mp3':
+  Duration: 00:00:03.65, start: 0.000000, bitrate: 32 kb/s
+  Stream #1:0: Audio: mp3, 24000 Hz, mono, fltp, 32 kb/s
+Stream mapping:
+  Stream #0:0 (png) -> scale:default
+  Stream #1:0 (mp3float) -> apad:default
+  drawtext:default -> Stream #0:0 (libx264)
+  apad:default -> Stream #0:1 (aac)
+Press [q] to stop, [?] for help
+Fontconfig error: Cannot load default config file: No such file: (null)
+[libx264 @ 0000025b7fe77f00] using SAR=1/1
+[libx264 @ 0000025b7fe77f00] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 0000025b7fe77f00] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0000025b7fe77f00] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:-3:-3 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=2.00:0.70 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-4 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.20
+[aac @ 0000025b7fe793c0] Too many bits 8192.000000 > 6144 per frame requested, clamping to max
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_2.mp4':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 144 kb/s
+    Metadata:
+      encoder         : Lavc60.31.102 aac
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.55 bitrate=   0frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.40 bitrate=   0frame=   14 fps=7.5 q=29.0 size=       0kB time=00:00:02.17 bitrate=   frame=   36 fps= 15 q=29.0 size=       0kB time=00:00:02.90 bitrate=   frame=   58 fps= 20 q=29.0 size=     256kB time=00:00:03.84 bitrate= 54frame=   74 fps= 22 q=29.0 size=     256kB time=00:00:04.52 bitrate= 46frame=   95 fps= 24 q=29.0 size=     512kB time=00:00:05.03 bitrate= 83frame=  121 fps= 27 q=29.0 size=     512kB time=00:00:06.01 bitrate= 69[mp4 @ 0000025b7fe77040] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0000025b7fe75f00] video:1087kB audio:44kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.548050%
+frame=  184 fps= 34 q=-1.0 Lsize=    1137kB time=00:00:06.14 bitrate=1516.2kbits/s speed=1.12x
+[libx264 @ 0000025b7fe77f00] frame I:1     Avg QP:18.19  size: 21024
+[libx264 @ 0000025b7fe77f00] frame P:46    Avg QP:16.82  size: 10430
+[libx264 @ 0000025b7fe77f00] frame B:137   Avg QP:19.14  size:  4464
+[libx264 @ 0000025b7fe77f00] consecutive B-frames:  0.5%  0.0%  1.6% 97.8%
+[libx264 @ 0000025b7fe77f00] mb I  I16..4: 28.1% 67.0%  4.9%
+[libx264 @ 0000025b7fe77f00] mb P  I16..4:  3.6%  3.1%  0.2%  P16..4: 24.4%  4.1%  3.0%  0.0%  0.0%    skip:61.8%
+[libx264 @ 0000025b7fe77f00] mb B  I16..4:  0.9%  0.2%  0.0%  B16..8: 32.1%  3.1%  0.0%  direct: 0.2%  skip:63.5%  L0:49.6% L1:49.1% BI: 1.3%
+[libx264 @ 0000025b7fe77f00] 8x8 transform intra:41.8% inter:97.0%
+[libx264 @ 0000025b7fe77f00] coded y,uvDC,uvAC intra: 10.1% 20.6% 15.7% inter: 2.4% 2.3% 0.7%
+[libx264 @ 0000025b7fe77f00] i16 v,h,dc,p: 26% 70%  3%  2%
+[libx264 @ 0000025b7fe77f00] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 26% 21% 50%  1%  1%  1%  1%  0%  1%
+[libx264 @ 0000025b7fe77f00] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 36% 25% 21%  5%  2%  3%  2%  3%  3%
+[libx264 @ 0000025b7fe77f00] i8c dc,h,v,p: 83% 11%  6%  1%
+[libx264 @ 0000025b7fe77f00] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 0000025b7fe77f00] ref P L0: 58.0%  1.8% 24.6% 15.6%
+[libx264 @ 0000025b7fe77f00] ref B L0: 70.9% 23.7%  5.5%
+[libx264 @ 0000025b7fe77f00] ref B L1: 85.2% 14.8%
+[libx264 @ 0000025b7fe77f00] kb/s:1450.89
+[aac @ 0000025b7fe793c0] Qavg: 62775.473
+✅ Scene 3 rendered successfully -> C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_2.mp4
+
+============================
+🎬 Rendering Scene 4... [16:9]
+============================
+🔍 Resolving asset_id: 4knKXvVEGNRsFFx5afvF via Firestore...
+   ↳ Resolved to: https://storage.googleapis.com/vividlaunch-assets/projects/lcipoPomI5Efg8CHUvwK/1773666545846_screencapture-localhost-3000-dashboard-2026-03-16-12_31_29.png
+📥 GCS download: gs://vividlaunch-assets/projects/lcipoPomI5Efg8CHUvwK/1773666545846_screencapture-localhost-3000-dashboard-2026-03-16-12_31_29.png → C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694647583.jpg
+🎙️ [Google Cloud TTS] Synthesizing Voiceover: "Just drop in a URL or a simple prompt, and watch the platform orchestrate your entire campaign."
+⏱️ TTS Audio Length: 5.30s
+⏱️ Final Scene Duration: 7.80s
+⚙️ Running FFmpeg compositor directly via spawn...
+FFmpeg Execution Args: -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694647583.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_3.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='1.2':x='max((iw-iw/zoom)-(on-1)*((iw-iw/zoom)/235),0)':y='(ih/2)-(ih/zoom/2)':d=235:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='One Prompt. Total Launch.': fontcolor=cyan: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 7.804 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_3.mp4"
+FFmpeg Path: C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe
+Executing via execSync: "C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe" -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694647583.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_3.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='1.2':x='max((iw-iw/zoom)-(on-1)*((iw-iw/zoom)/235),0)':y='(ih/2)-(ih/zoom/2)':d=235:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='One Prompt. Total Launch.': fontcolor=cyan: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 7.804 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_3.mp4"
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Fontconfig error: Cannot load default config file: No such file: (null)
+Input #0, png_pipe, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694647583.jpg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1920x1272, 25 fps, 25 tbr, 25 tbn
+[mp3 @ 0000024b2703fd40] Estimating duration from bitrate, this may be inaccurate
+Input #1, mp3, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_3.mp3':
+  Duration: 00:00:05.30, start: 0.000000, bitrate: 32 kb/s
+  Stream #1:0: Audio: mp3, 24000 Hz, mono, fltp, 32 kb/s
+Stream mapping:
+  Stream #0:0 (png) -> scale:default
+  Stream #1:0 (mp3float) -> apad:default
+  drawtext:default -> Stream #0:0 (libx264)
+  apad:default -> Stream #0:1 (aac)
+Press [q] to stop, [?] for help
+Fontconfig error: Cannot load default config file: No such file: (null)
+[libx264 @ 0000024b26c34bc0] using SAR=1/1
+[libx264 @ 0000024b26c34bc0] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 0000024b26c34bc0] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0000024b26c34bc0] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:-3:-3 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=2.00:0.70 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-4 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.20
+[aac @ 0000024b26c36380] Too many bits 8192.000000 > 6144 per frame requested, clamping to max
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_3.mp4':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 144 kb/s
+    Metadata:
+      encoder         : Lavc60.31.102 aac
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.81 bitrate=   0frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.40 bitrate=   0frame=   32 fps= 20 q=29.0 size=       0kB time=00:00:02.77 bitrate=   frame=   70 fps= 33 q=29.0 size=       0kB time=00:00:04.05 bitrate=   frame=  110 fps= 42 q=29.0 size=       0kB time=00:00:05.67 bitrate=   frame=  146 fps= 46 q=29.0 size=       0kB time=00:00:06.86 bitrate=   [mp4 @ 0000024b26c33ec0] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0000024b26c263c0] video:231kB audio:65kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 2.509603%
+frame=  234 fps= 58 q=-1.0 Lsize=     304kB time=00:00:07.76 bitrate= 320.3kbits/s speed=1.92x
+[libx264 @ 0000024b26c34bc0] frame I:1     Avg QP:15.18  size: 60265
+[libx264 @ 0000024b26c34bc0] frame P:65    Avg QP:13.38  size:  1093
+[libx264 @ 0000024b26c34bc0] frame B:168   Avg QP:16.17  size:   624
+[libx264 @ 0000024b26c34bc0] consecutive B-frames:  0.4%  7.7% 11.5% 80.3%
+[libx264 @ 0000024b26c34bc0] mb I  I16..4: 32.7% 52.2% 15.1%
+[libx264 @ 0000024b26c34bc0] mb P  I16..4:  0.3%  0.3%  0.0%  P16..4:  5.1%  0.2%  0.2%  0.0%  0.0%    skip:93.9%
+[libx264 @ 0000024b26c34bc0] mb B  I16..4:  0.1%  0.0%  0.0%  B16..8: 10.1%  0.1%  0.0%  direct: 0.0%  skip:89.7%  L0:34.8% L1:65.0% BI: 0.3%
+[libx264 @ 0000024b26c34bc0] 8x8 transform intra:47.3% inter:74.9%
+[libx264 @ 0000024b26c34bc0] coded y,uvDC,uvAC intra: 10.0% 16.5% 13.2% inter: 0.1% 0.1% 0.0%
+[libx264 @ 0000024b26c34bc0] i16 v,h,dc,p: 60% 39%  1%  1%
+[libx264 @ 0000024b26c34bc0] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 44% 10% 45%  0%  0%  0%  0%  0%  0%
+[libx264 @ 0000024b26c34bc0] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 45% 25% 13%  3%  3%  3%  3%  2%  3%
+[libx264 @ 0000024b26c34bc0] i8c dc,h,v,p: 75% 14% 10%  1%
+[libx264 @ 0000024b26c34bc0] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 0000024b26c34bc0] ref P L0: 68.7%  0.3% 26.2%  4.7%
+[libx264 @ 0000024b26c34bc0] ref B L0: 76.7% 20.1%  3.2%
+[libx264 @ 0000024b26c34bc0] ref B L1: 98.9%  1.1%
+[libx264 @ 0000024b26c34bc0] kb/s:242.14
+[aac @ 0000024b26c36380] Qavg: 63542.305
+✅ Scene 4 rendered successfully -> C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_3.mp4
+
+============================
+🎬 Rendering Scene 5... [16:9]
+============================
+🔍 Resolving asset_id: 5KfvC4c5pcKKn2VwFj9t via Firestore...
+   ↳ Resolved to: https://storage.googleapis.com/vividlaunch-assets/projects/lcipoPomI5Efg8CHUvwK/1773666555940_screencapture-localhost-3000-projects-new-2026-03-16-13_53_07.png
+📥 GCS download: gs://vividlaunch-assets/projects/lcipoPomI5Efg8CHUvwK/1773666555940_screencapture-localhost-3000-projects-new-2026-03-16-13_53_07.png → C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694657425.jpg
+🎙️ [Google Cloud TTS] Synthesizing Voiceover: "Our engine instantly extracts your brand DNA, matching your unique voice and target audience perfectly."
+⏱️ TTS Audio Length: 5.78s
+⏱️ Final Scene Duration: 8.28s
+⚙️ Running FFmpeg compositor directly via spawn...
+FFmpeg Execution Args: -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694657425.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_4.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='min(zoom+0.0015,1.5)':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=249:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='Perfect Brand Alignment': fontcolor=white: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 8.283999999999999 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_4.mp4"
+FFmpeg Path: C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe
+Executing via execSync: "C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe" -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694657425.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_4.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='min(zoom+0.0015,1.5)':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=249:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='Perfect Brand Alignment': fontcolor=white: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 8.283999999999999 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_4.mp4"
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Fontconfig error: Cannot load default config file: No such file: (null)
+Input #0, png_pipe, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694657425.jpg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1920x973, 25 fps, 25 tbr, 25 tbn
+[mp3 @ 0000026c661a36c0] Estimating duration from bitrate, this may be inaccurate
+Input #1, mp3, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_4.mp3':
+  Duration: 00:00:05.78, start: 0.000000, bitrate: 32 kb/s
+  Stream #1:0: Audio: mp3, 24000 Hz, mono, fltp, 32 kb/s
+Stream mapping:
+  Stream #0:0 (png) -> scale:default
+  Stream #1:0 (mp3float) -> apad:default
+  drawtext:default -> Stream #0:0 (libx264)
+  apad:default -> Stream #0:1 (aac)
+Press [q] to stop, [?] for help
+Fontconfig error: Cannot load default config file: No such file: (null)
+[libx264 @ 0000026c661cdd80] using SAR=1/1
+[libx264 @ 0000026c661cdd80] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 0000026c661cdd80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0000026c661cdd80] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:-3:-3 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=2.00:0.70 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-4 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.20
+[aac @ 0000026c661cf980] Too many bits 8192.000000 > 6144 per frame requested, clamping to max
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_4.mp4':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 144 kb/s
+    Metadata:
+      encoder         : Lavc60.31.102 aac
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.29 bitrate=   1frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.40 bitrate=   0frame=   13 fps=7.6 q=29.0 size=       0kB time=00:00:02.17 bitrate=   frame=   48 fps= 22 q=29.0 size=     256kB time=00:00:03.32 bitrate= 63frame=   75 fps= 28 q=29.0 size=     512kB time=00:00:04.22 bitrate= 99frame=  112 fps= 35 q=29.0 size=     768kB time=00:00:05.41 bitrate=116frame=  144 fps= 38 q=29.0 size=     768kB time=00:00:06.65 bitrate= 94frame=  175 fps= 41 q=29.0 size=    1024kB time=00:00:07.85 bitrate=106[mp4 @ 0000026c6621b3c0] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0000026c661d1640] video:1613kB audio:69kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.469125%
+frame=  249 fps= 48 q=-1.0 Lsize=    1690kB time=00:00:08.27 bitrate=1672.3kbits/s speed=1.61x
+[libx264 @ 0000026c661cdd80] frame I:1     Avg QP:16.01  size: 56739
+[libx264 @ 0000026c661cdd80] frame P:62    Avg QP:19.48  size: 17662
+[libx264 @ 0000026c661cdd80] frame B:186   Avg QP:27.81  size:  2683
+[libx264 @ 0000026c661cdd80] consecutive B-frames:  0.4%  0.0%  0.0% 99.6%
+[libx264 @ 0000026c661cdd80] mb I  I16..4: 30.2% 57.1% 12.7%
+[libx264 @ 0000026c661cdd80] mb P  I16..4:  7.4%  1.3%  0.4%  P16..4: 10.8%  4.4%  3.0%  0.0%  0.0%    skip:72.7%
+[libx264 @ 0000026c661cdd80] mb B  I16..4:  0.7%  0.1%  0.0%  B16..8: 18.5%  1.5%  0.1%  direct: 0.4%  skip:78.7%  L0:47.0% L1:42.8% BI:10.2%
+[libx264 @ 0000026c661cdd80] 8x8 transform intra:19.8% inter:50.7%
+[libx264 @ 0000026c661cdd80] coded y,uvDC,uvAC intra: 4.6% 5.3% 4.9% inter: 2.0% 3.0% 2.8%
+[libx264 @ 0000026c661cdd80] i16 v,h,dc,p: 13% 86%  1%  0%
+[libx264 @ 0000026c661cdd80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 20%  9% 69%  0%  0%  0%  0%  0%  0%
+[libx264 @ 0000026c661cdd80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 22% 34% 33%  1%  2%  2%  2%  1%  2%
+[libx264 @ 0000026c661cdd80] i8c dc,h,v,p: 89%  8%  2%  0%
+[libx264 @ 0000026c661cdd80] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 0000026c661cdd80] ref P L0: 59.6%  5.2% 18.9% 16.3%
+[libx264 @ 0000026c661cdd80] ref B L0: 72.6% 22.1%  5.3%
+[libx264 @ 0000026c661cdd80] ref B L1: 84.1% 15.9%
+[libx264 @ 0000026c661cdd80] kb/s:1591.17
+[aac @ 0000026c661cf980] Qavg: 63344.871
+✅ Scene 5 rendered successfully -> C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_4.mp4
+
+============================
+🎬 Rendering Scene 6... [16:9]
+============================
+🔍 Resolving asset_id: 1yLodecFVK9nnN2mqhfS via Firestore...
+   ↳ Resolved to: https://storage.googleapis.com/vividlaunch-assets/projects/lcipoPomI5Efg8CHUvwK/1773666551368_screencapture-localhost-3000-project-G3oT4j3sVNHRitG34ax7-manage-autopilot-2026-03-16-08_03_42.png
+📥 GCS download: gs://vividlaunch-assets/projects/lcipoPomI5Efg8CHUvwK/1773666551368_screencapture-localhost-3000-project-G3oT4j3sVNHRitG34ax7-manage-autopilot-2026-03-16-08_03_42.png → C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694668632.jpg
+🎙️ [Google Cloud TTS] Synthesizing Voiceover: "VividLaunch choreographs your multi channel strategy, generating and scheduling videos, blogs, and social posts."
+⏱️ TTS Audio Length: 6.38s
+⏱️ Final Scene Duration: 8.88s
+⚙️ Running FFmpeg compositor directly via spawn...
+FFmpeg Execution Args: -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694668632.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_5.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='1.2':x='min((on-1)*((iw-iw/zoom)/267),iw-iw/zoom)':y='(ih/2)-(ih/zoom/2)':d=267:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='Autonomous Orchestration': fontcolor=cyan: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 8.884 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_5.mp4"
+FFmpeg Path: C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe
+Executing via execSync: "C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe" -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694668632.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_5.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='1.2':x='min((on-1)*((iw-iw/zoom)/267),iw-iw/zoom)':y='(ih/2)-(ih/zoom/2)':d=267:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='Autonomous Orchestration': fontcolor=cyan: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 8.884 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_5.mp4"
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Fontconfig error: Cannot load default config file: No such file: (null)
+Input #0, png_pipe, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\uploaded_1773694668632.jpg':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1920x912, 25 fps, 25 tbr, 25 tbn
+[mp3 @ 0000022e1d083580] Estimating duration from bitrate, this may be inaccurate
+Input #1, mp3, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_5.mp3':
+  Duration: 00:00:06.38, start: 0.000000, bitrate: 32 kb/s
+  Stream #1:0: Audio: mp3, 24000 Hz, mono, fltp, 32 kb/s
+Stream mapping:
+  Stream #0:0 (png) -> scale:default
+  Stream #1:0 (mp3float) -> apad:default
+  drawtext:default -> Stream #0:0 (libx264)
+  apad:default -> Stream #0:1 (aac)
+Press [q] to stop, [?] for help
+Fontconfig error: Cannot load default config file: No such file: (null)
+[libx264 @ 0000022e1d0e8980] using SAR=1/1
+[libx264 @ 0000022e1d0e8980] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 0000022e1d0e8980] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0000022e1d0e8980] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:-3:-3 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=2.00:0.70 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-4 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.20
+[aac @ 0000022e1d0ebbc0] Too many bits 8192.000000 > 6144 per frame requested, clamping to max
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_5.mp4':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 144 kb/s
+    Metadata:
+      encoder         : Lavc60.31.102 aac
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.93 bitrate=   0frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.57 bitrate=   0frame=   42 fps= 27 q=29.0 size=       0kB time=00:00:03.11 bitrate=   frame=   85 fps= 41 q=29.0 size=       0kB time=00:00:04.56 bitrate=   frame=  124 fps= 48 q=29.0 size=       0kB time=00:00:05.84 bitrate=   frame=  156 fps= 51 q=29.0 size=       0kB time=00:00:07.08 bitrate=   frame=  207 fps= 58 q=29.0 size=       0kB time=00:00:08.74 bitrate=   [mp4 @ 0000022e1d0b31c0] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0000022e1d0e6600] video:200kB audio:80kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 2.985601%
+frame=  267 fps= 67 q=-1.0 Lsize=     288kB time=00:00:08.87 bitrate= 266.0kbits/s speed=2.22x
+[libx264 @ 0000022e1d0e8980] frame I:2     Avg QP:12.36  size: 58292
+[libx264 @ 0000022e1d0e8980] frame P:67    Avg QP:14.22  size:   488
+[libx264 @ 0000022e1d0e8980] frame B:198   Avg QP:19.20  size:   275
+[libx264 @ 0000022e1d0e8980] consecutive B-frames:  0.7%  0.7%  1.1% 97.4%
+[libx264 @ 0000022e1d0e8980] mb I  I16..4: 45.4% 44.3% 10.3%
+[libx264 @ 0000022e1d0e8980] mb P  I16..4:  0.1%  0.2%  0.0%  P16..4:  3.4%  0.0%  0.0%  0.0%  0.0%    skip:96.2%
+[libx264 @ 0000022e1d0e8980] mb B  I16..4:  0.0%  0.0%  0.0%  B16..8:  4.7%  0.0%  0.0%  direct: 0.0%  skip:95.2%  L0:34.4% L1:65.4% BI: 0.2%
+[libx264 @ 0000022e1d0e8980] 8x8 transform intra:45.7% inter:66.3%
+[libx264 @ 0000022e1d0e8980] coded y,uvDC,uvAC intra: 7.1% 9.2% 8.8% inter: 0.0% 0.0% 0.0%
+[libx264 @ 0000022e1d0e8980] i16 v,h,dc,p: 77% 21%  2%  0%
+[libx264 @ 0000022e1d0e8980] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 27% 21% 51%  0%  0%  0%  0%  0%  0%
+[libx264 @ 0000022e1d0e8980] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 37% 29% 13%  3%  4%  4%  4%  4%  4%
+[libx264 @ 0000022e1d0e8980] i8c dc,h,v,p: 90%  5%  5%  0%
+[libx264 @ 0000022e1d0e8980] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 0000022e1d0e8980] ref P L0: 91.3%  0.3%  8.1%  0.3%
+[libx264 @ 0000022e1d0e8980] ref B L0: 91.2%  8.3%  0.5%
+[libx264 @ 0000022e1d0e8980] ref B L1: 99.2%  0.8%
+[libx264 @ 0000022e1d0e8980] kb/s:183.23
+[aac @ 0000022e1d0ebbc0] Qavg: 63552.516
+✅ Scene 6 rendered successfully -> C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_5.mp4
+
+============================
+🎬 Rendering Scene 7... [16:9]
+============================
+DEBUG: Calling Imagen 3 Stable at: https://us-central1-aiplatform.googleapis.com/v1/projects/vividlaunch/locations/us-central1/publishers/google/models/imagen-3.0-generate-002:predict
+🖼️  [Vertex AI] Imagen 3 Generation (Stable): "Sleek, futuristic 3D visualization of a digital node graph connecting various ma..."
+   ✅ Generated image saved to C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694680562.jpg
+   🗃️ Saving Generated Image to Asset Library...
+   ✅ Image added to Asset Library
+🎙️ [Google Cloud TTS] Synthesizing Voiceover: "No more distribution bottlenecks. Just a unified stream of premium marketing assets on autopilot."
+⏱️ TTS Audio Length: 5.98s
+⏱️ Final Scene Duration: 8.48s
+⚙️ Running FFmpeg compositor directly via spawn...
+FFmpeg Execution Args: -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694680562.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_6.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='if(eq(on,1),1.5,max(1.0,zoom-0.0015))':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=255:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='Ship Faster. Grow Quicker.': fontcolor=yellow: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 8.475999999999999 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_6.mp4"
+FFmpeg Path: C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe
+Executing via execSync: "C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe" -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694680562.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_6.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='if(eq(on,1),1.5,max(1.0,zoom-0.0015))':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=255:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='Ship Faster. Grow Quicker.': fontcolor=yellow: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 8.475999999999999 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_6.mp4"
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Fontconfig error: Cannot load default config file: No such file: (null)
+Input #0, image2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694680562.jpg':
+  Duration: 00:00:00.04, start: 0.000000, bitrate: 37005 kb/s
+  Stream #0:0: Video: mjpeg (Baseline), yuvj420p(pc, bt470bg/unknown/unknown), 1408x768 [SAR 1:1 DAR 11:6], 25 fps, 25 tbr, 25 tbn
+[mp3 @ 000002de6d696280] Estimating duration from bitrate, this may be inaccurate
+Input #1, mp3, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_6.mp3':
+  Duration: 00:00:05.98, start: 0.000000, bitrate: 32 kb/s
+  Stream #1:0: Audio: mp3, 24000 Hz, mono, fltp, 32 kb/s
+Stream mapping:
+  Stream #0:0 (mjpeg) -> scale:default
+  Stream #1:0 (mp3float) -> apad:default
+  drawtext:default -> Stream #0:0 (libx264)
+  apad:default -> Stream #0:1 (aac)
+Press [q] to stop, [?] for help
+Fontconfig error: Cannot load default config file: No such file: (null)
+[swscaler @ 000002de6d69c140] deprecated pixel format used, make sure you did set range correctly
+    Last message repeated 3 times
+[libx264 @ 000002de6d6e8780] using SAR=1/1
+[libx264 @ 000002de6d6e8780] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 000002de6d6e8780] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 000002de6d6e8780] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:-3:-3 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=2.00:0.70 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-4 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.20
+[aac @ 000002de6d6ea180] Too many bits 8192.000000 > 6144 per frame requested, clamping to max
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_6.mp4':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 144 kb/s
+    Metadata:
+      encoder         : Lavc60.31.102 aac
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.46 bitrate=   0frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.40 bitrate=   0frame=    9 fps=4.9 q=29.0 size=       0kB time=00:00:02.00 bitrate=   frame=   27 fps= 11 q=29.0 size=     256kB time=00:00:02.60 bitrate= 80frame=   44 fps= 15 q=29.0 size=     256kB time=00:00:03.20 bitrate= 65frame=   66 fps= 19 q=29.0 size=     512kB time=00:00:03.92 bitrate=106frame=   87 fps= 21 q=29.0 size=     768kB time=00:00:04.60 bitrate=136frame=  106 fps= 23 q=29.0 size=     768kB time=00:00:05.24 bitrate=119frame=  128 fps= 25 q=29.0 size=    1024kB time=00:00:06.18 bitrate=135frame=  148 fps= 27 q=29.0 size=    1280kB time=00:00:06.86 bitrate=152frame=  169 fps= 28 q=29.0 size=    1280kB time=00:00:07.55 bitrate=138frame=  188 fps= 28 q=29.0 size=    1536kB time=00:00:08.23 bitrate=152[mp4 @ 000002de6d6e67c0] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 000002de6d6e66c0] video:2193kB audio:76kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.352908%
+frame=  254 fps= 32 q=-1.0 Lsize=    2277kB time=00:00:08.44 bitrate=2207.8kbits/s speed=1.05x
+[libx264 @ 000002de6d6e8780] frame I:2     Avg QP:19.76  size: 63194
+[libx264 @ 000002de6d6e8780] frame P:64    Avg QP:18.12  size: 19361
+[libx264 @ 000002de6d6e8780] frame B:188   Avg QP:21.79  size:  4679
+[libx264 @ 000002de6d6e8780] consecutive B-frames:  1.2%  0.0%  1.2% 97.6%
+[libx264 @ 000002de6d6e8780] mb I  I16..4: 17.5% 67.0% 15.5%
+[libx264 @ 000002de6d6e8780] mb P  I16..4:  1.0%  1.7%  0.3%  P16..4: 38.6%  9.9%  9.3%  0.0%  0.0%    skip:39.3%
+[libx264 @ 000002de6d6e8780] mb B  I16..4:  0.1%  0.0%  0.0%  B16..8: 38.9%  1.1%  0.1%  direct: 0.2%  skip:59.6%  L0:51.1% L1:45.6% BI: 3.4%
+[libx264 @ 000002de6d6e8780] 8x8 transform intra:60.9% inter:96.6%
+[libx264 @ 000002de6d6e8780] coded y,uvDC,uvAC intra: 38.3% 64.4% 38.2% inter: 5.2% 8.0% 0.5%
+[libx264 @ 000002de6d6e8780] i16 v,h,dc,p: 12% 52%  8% 28%
+[libx264 @ 000002de6d6e8780] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 20% 30% 25%  3%  5%  2%  7%  2%  6%
+[libx264 @ 000002de6d6e8780] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 30% 33% 13%  4%  6%  3%  7%  2%  3%
+[libx264 @ 000002de6d6e8780] i8c dc,h,v,p: 49% 34% 10%  6%
+[libx264 @ 000002de6d6e8780] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 000002de6d6e8780] ref P L0: 57.2%  4.3% 26.2% 12.3%
+[libx264 @ 000002de6d6e8780] ref B L0: 76.9% 20.0%  3.1%
+[libx264 @ 000002de6d6e8780] ref B L1: 89.0% 11.0%
+[libx264 @ 000002de6d6e8780] kb/s:2121.45
+[aac @ 000002de6d6ea180] Qavg: 63662.078
+✅ Scene 7 rendered successfully -> C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_6.mp4
+
+============================
+🎬 Rendering Scene 8... [16:9]
+============================
+DEBUG: Calling Imagen 3 Stable at: https://us-central1-aiplatform.googleapis.com/v1/projects/vividlaunch/locations/us-central1/publishers/google/models/imagen-3.0-generate-002:predict
+🖼️  [Vertex AI] Imagen 3 Generation (Stable): "Cinematic shot of a relaxed, smiling developer leaning back in a chair in a diml..."
+   ✅ Generated image saved to C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694718735.jpg
+   🗃️ Saving Generated Image to Asset Library...
+   ✅ Image added to Asset Library
+🎙️ [Google Cloud TTS] Synthesizing Voiceover: "Build the product. Let AI launch it. Start your growth engine with VividLaunch today."
+⏱️ TTS Audio Length: 4.66s
+⏱️ Final Scene Duration: 7.16s
+⚙️ Running FFmpeg compositor directly via spawn...
+FFmpeg Execution Args: -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694718735.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_7.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='min(zoom+0.0015,1.5)':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=215:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='Let AI Launch It': fontcolor=green: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 7.156 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_7.mp4"
+FFmpeg Path: C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe
+Executing via execSync: "C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe" -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694718735.jpg" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_7.mp3" -filter_complex "[0:v]scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,setsar=1,zoompan=z='min(zoom+0.0015,1.5)':x='(iw/2)-(iw/zoom/2)':y='(ih/2)-(ih/zoom/2)':d=215:s=1920x1080:fps=30[v1];[v1]drawtext=fontfile=C\\\\:/Windows/Fonts/arialbd.ttf: text='Let AI Launch It': fontcolor=green: fontsize=72: x=(w-text_w)/2: y=h*0.80: box=1: boxcolor=black@0.6: boxborderw=20[vOut];[1:a]apad[aOut]" -map "[vOut]" -map "[aOut]" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -movflags +faststart -t 7.156 "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_7.mp4"
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Fontconfig error: Cannot load default config file: No such file: (null)
+Input #0, image2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\imagen_1773694718735.jpg':
+  Duration: 00:00:00.04, start: 0.000000, bitrate: 38561 kb/s
+  Stream #0:0: Video: mjpeg (Baseline), yuvj420p(pc, bt470bg/unknown/unknown), 1408x768 [SAR 1:1 DAR 11:6], 25 fps, 25 tbr, 25 tbn
+[mp3 @ 000002811f675140] Estimating duration from bitrate, this may be inaccurate
+Input #1, mp3, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\tts_7.mp3':
+  Duration: 00:00:04.66, start: 0.000000, bitrate: 32 kb/s
+  Stream #1:0: Audio: mp3, 24000 Hz, mono, fltp, 32 kb/s
+Stream mapping:
+  Stream #0:0 (mjpeg) -> scale:default
+  Stream #1:0 (mp3float) -> apad:default
+  drawtext:default -> Stream #0:0 (libx264)
+  apad:default -> Stream #0:1 (aac)
+Press [q] to stop, [?] for help
+Fontconfig error: Cannot load default config file: No such file: (null)
+[swscaler @ 000002811f67b500] deprecated pixel format used, make sure you did set range correctly
+[swscaler @ 000002811f67a500] deprecated pixel format used, make sure you did set range correctly
+    Last message repeated 2 times
+[libx264 @ 000002811f6caa80] using SAR=1/1
+[libx264 @ 000002811f6caa80] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 000002811f6caa80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 000002811f6caa80] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:-3:-3 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=2.00:0.70 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-4 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.20
+[aac @ 000002811f6cc180] Too many bits 8192.000000 > 6144 per frame requested, clamping to max
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_7.mp4':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 144 kb/s
+    Metadata:
+      encoder         : Lavc60.31.102 aac
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.38 bitrate=   1frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.28 bitrate=   0frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.40 bitrate=   0frame=   11 fps=5.3 q=29.0 size=       0kB time=00:00:02.09 bitrate=   frame=   31 fps= 12 q=29.0 size=     256kB time=00:00:02.77 bitrate= 75frame=   48 fps= 15 q=29.0 size=     256kB time=00:00:03.32 bitrate= 63frame=   71 fps= 20 q=29.0 size=     512kB time=00:00:04.09 bitrate=102frame=   89 fps= 21 q=29.0 size=     512kB time=00:00:04.86 bitrate= 86frame=  110 fps= 24 q=29.0 size=     768kB time=00:00:05.54 bitrate=113frame=  129 fps= 25 q=29.0 size=    1024kB time=00:00:06.22 bitrate=134frame=  150 fps= 26 q=29.0 size=    1024kB time=00:00:06.91 bitrate=121[mp4 @ 000002811f6c77c0] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 000002811f6c7680] video:1697kB audio:54kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.400350%
+frame=  215 fps= 30 q=-1.0 Lsize=    1758kB time=00:00:07.12 bitrate=2021.4kbits/s speed=1.01x
+[libx264 @ 000002811f6caa80] frame I:1     Avg QP:18.27  size: 60737
+[libx264 @ 000002811f6caa80] frame P:54    Avg QP:17.68  size: 16776
+[libx264 @ 000002811f6caa80] frame B:160   Avg QP:20.90  size:  4815
+[libx264 @ 000002811f6caa80] consecutive B-frames:  0.5%  0.9%  0.0% 98.6%
+[libx264 @ 000002811f6caa80] mb I  I16..4: 17.5% 62.9% 19.6%
+[libx264 @ 000002811f6caa80] mb P  I16..4:  0.8%  1.1%  0.1%  P16..4: 35.3%  8.5%  8.1%  0.0%  0.0%    skip:46.2%
+[libx264 @ 000002811f6caa80] mb B  I16..4:  0.1%  0.0%  0.0%  B16..8: 40.9%  1.2%  0.1%  direct: 0.2%  skip:57.6%  L0:48.9% L1:47.9% BI: 3.2%
+[libx264 @ 000002811f6caa80] 8x8 transform intra:57.7% inter:96.8%
+[libx264 @ 000002811f6caa80] coded y,uvDC,uvAC intra: 36.3% 48.2% 28.2% inter: 5.5% 4.5% 0.2%
+[libx264 @ 000002811f6caa80] i16 v,h,dc,p: 32% 41%  9% 17%
+[libx264 @ 000002811f6caa80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 27% 20% 34%  3%  4%  5%  4%  2%  3%
+[libx264 @ 000002811f6caa80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 36% 27% 14%  3%  6%  5%  5%  2%  2%
+[libx264 @ 000002811f6caa80] i8c dc,h,v,p: 62% 21% 15%  2%
+[libx264 @ 000002811f6caa80] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 000002811f6caa80] ref P L0: 57.9%  5.4% 26.3% 10.4%
+[libx264 @ 000002811f6caa80] ref B L0: 78.4% 19.0%  2.6%
+[libx264 @ 000002811f6caa80] ref B L1: 89.6% 10.4%
+[libx264 @ 000002811f6caa80] kb/s:1939.03
+[aac @ 000002811f6cc180] Qavg: 63702.723
+✅ Scene 8 rendered successfully -> C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_7.mp4
+
+=================================
+🎬 All individual scenes rendered!
+📝 Renders: [
+  {
+    path: 'C:\\Users\\Temitope\\Documents\\GitHub\\vivid-launch\\worker\\tmp\\scene_0.mp4',
+    duration: 7.834,
+    transition: 'fade'
+  },
+  {
+    path: 'C:\\Users\\Temitope\\Documents\\GitHub\\vivid-launch\\worker\\tmp\\scene_1.mp4',
+    duration: 5.476,
+    transition: 'wipeleft'
+  },
+  {
+    path: 'C:\\Users\\Temitope\\Documents\\GitHub\\vivid-launch\\worker\\tmp\\scene_2.mp4',
+    duration: 6.148,
+    transition: 'circlecrop'
+  },
+  {
+    path: 'C:\\Users\\Temitope\\Documents\\GitHub\\vivid-launch\\worker\\tmp\\scene_3.mp4',
+    duration: 7.804,
+    transition: 'slideup'
+  },
+  {
+    path: 'C:\\Users\\Temitope\\Documents\\GitHub\\vivid-launch\\worker\\tmp\\scene_4.mp4',
+    duration: 8.3,
+    transition: 'wiperight'
+  },
+  {
+    path: 'C:\\Users\\Temitope\\Documents\\GitHub\\vivid-launch\\worker\\tmp\\scene_5.mp4',
+    duration: 8.9,
+    transition: 'fade'
+  },
+  {
+    path: 'C:\\Users\\Temitope\\Documents\\GitHub\\vivid-launch\\worker\\tmp\\scene_6.mp4',
+    duration: 8.476,
+    transition: 'slideup'
+  },
+  {
+    path: 'C:\\Users\\Temitope\\Documents\\GitHub\\vivid-launch\\worker\\tmp\\scene_7.mp4',
+    duration: 7.167,
+    transition: 'fade'
+  }
+]
+=================================
+
+⏳ Merging scenes with xfade transitions...
+Merging command: "C:\Users\Temitope\Documents\GitHub\vivid-launch\node_modules\ffmpeg-static\ffmpeg.exe" -y -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_0.mp4" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_1.mp4" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_2.mp4" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_3.mp4" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_4.mp4" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_5.mp4" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_6.mp4" -i "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_7.mp4" -filter_complex "[0:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_0];[0:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_0];[1:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_1];[1:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_1];[2:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_2];[2:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_2];[3:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_3];[3:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_3];[4:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_4];[4:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_4];[5:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_5];[5:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_5];[6:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_6];[6:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_6];[7:v]settb=1/90000,setpts=PTS-STARTPTS,fps=30[v_norm_7];[7:a]asetpts=PTS-STARTPTS,aresample=44100[a_norm_7];[v_norm_0][v_norm_1]xfade=transition=fade:duration=1:offset=6.834[v_out_1];[v_out_1][v_norm_2]xfade=transition=fade:duration=1:offset=11.309999999999999[v_out_2];[v_out_2][v_norm_3]xfade=transition=fade:duration=1:offset=16.458[v_out_3];[v_out_3][v_norm_4]xfade=transition=fade:duration=1:offset=23.262[v_out_4];[v_out_4][v_norm_5]xfade=transition=fade:duration=1:offset=30.562[v_out_5];[v_out_5][v_norm_6]xfade=transition=fade:duration=1:offset=38.462[v_out_6];[v_out_6][v_norm_7]xfade=transition=fade:duration=1:offset=45.938[v_out_7];[a_norm_0]adelay=0|0[a_delayed_0];[a_norm_1]adelay=6834|6834[a_delayed_1];[a_norm_2]adelay=11309|11309[a_delayed_2];[a_norm_3]adelay=16458|16458[a_delayed_3];[a_norm_4]adelay=23262|23262[a_delayed_4];[a_norm_5]adelay=30562|30562[a_delayed_5];[a_norm_6]adelay=38462|38462[a_delayed_6];[a_norm_7]adelay=45938|45938[a_delayed_7];[a_delayed_0][a_delayed_1][a_delayed_2][a_delayed_3][a_delayed_4][a_delayed_5][a_delayed_6][a_delayed_7]amix=inputs=8:dropout_transition=0:normalize=0[a_out]" -map "[v_out_7]" -map "[a_out]" -c:v libx264 -pix_fmt yuv420p -movflags +faststart "C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\final_output.mp4"
+ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_0.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Duration: 00:00:07.83, start: 0.000000, bitrate: 2291 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 2220 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 62 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+Input #1, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_1.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Duration: 00:00:05.48, start: 0.000000, bitrate: 855 kb/s
+  Stream #1:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 789 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+  Stream #1:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 59 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+Input #2, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_2.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Duration: 00:00:06.15, start: 0.000000, bitrate: 1515 kb/s
+  Stream #2:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1451 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+  Stream #2:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 58 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+Input #3, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_3.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Duration: 00:00:07.80, start: 0.000000, bitrate: 318 kb/s
+  Stream #3:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 242 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+  Stream #3:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 67 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+Input #4, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_4.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Duration: 00:00:08.30, start: 0.000000, bitrate: 1667 kb/s
+  Stream #4:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1591 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+  Stream #4:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 67 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+Input #5, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_5.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Duration: 00:00:08.90, start: 0.000000, bitrate: 265 kb/s
+  Stream #5:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 183 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+  Stream #5:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 73 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+Input #6, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_6.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Duration: 00:00:08.48, start: 0.000000, bitrate: 2200 kb/s
+  Stream #6:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 2122 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+  Stream #6:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 72 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+Input #7, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\scene_7.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Duration: 00:00:07.17, start: 0.000000, bitrate: 2009 kb/s
+  Stream #7:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1939 kb/s, 30 fps, 30 tbr, 15360 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+  Stream #7:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 24000 Hz, mono, fltp, 61 kb/s (default)
+    Metadata:
+      handler_name    : SoundHandler
+      vendor_id       : [0][0][0][0]
+Stream mapping:
+  Stream #0:0 (h264) -> settb:default
+  Stream #0:1 (aac) -> asetpts:default
+  Stream #1:0 (h264) -> settb:default
+  Stream #1:1 (aac) -> asetpts:default
+  Stream #2:0 (h264) -> settb:default
+  Stream #2:1 (aac) -> asetpts:default
+  Stream #3:0 (h264) -> settb:default
+  Stream #3:1 (aac) -> asetpts:default
+  Stream #4:0 (h264) -> settb:default
+  Stream #4:1 (aac) -> asetpts:default
+  Stream #5:0 (h264) -> settb:default
+  Stream #5:1 (aac) -> asetpts:default
+  Stream #6:0 (h264) -> settb:default
+  Stream #6:1 (aac) -> asetpts:default
+  Stream #7:0 (h264) -> settb:default
+  Stream #7:1 (aac) -> asetpts:default
+  xfade:default -> Stream #0:0 (libx264)
+  amix:default -> Stream #0:1 (aac)
+Press [q] to stop, [?] for help
+[libx264 @ 0000021d9ea24f80] using SAR=1/1
+[libx264 @ 0000021d9ea24f80] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+[libx264 @ 0000021d9ea24f80] profile High, level 4.0, 4:2:0, 8-bit
+[libx264 @ 0000021d9ea24f80] 264 - core 164 r3172 c1c9931 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to 'C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\final_output.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 15360 tbn
+    Metadata:
+      encoder         : Lavc60.31.102 libx264
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, mono, fltp, 69 kb/s
+    Metadata:
+      encoder         : Lavc60.31.102 aac
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.90 bitrate=   0frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:01.48 bitrate=   0frame=   10 fps=4.7 q=29.0 size=       0kB time=00:00:02.13 bitrate=   frame=   27 fps= 10 q=29.0 size=     256kB time=00:00:02.73 bitrate= 76frame=   43 fps= 13 q=29.0 size=     256kB time=00:00:03.25 bitrate= 64frame=   60 fps= 16 q=29.0 size=     256kB time=00:00:03.80 bitrate= 55frame=   74 fps= 18 q=29.0 size=     512kB time=00:00:04.27 bitrate= 98frame=   92 fps= 19 q=29.0 size=     512kB time=00:00:04.87 bitrate= 86frame=  104 fps= 20 q=29.0 size=     768kB time=00:00:05.29 bitrate=118frame=  119 fps= 21 q=29.0 size=     768kB time=00:00:05.75 bitrate=109frame=  134 fps= 21 q=29.0 size=    1024kB time=00:00:06.26 bitrate=133frame=  152 fps= 22 q=29.0 size=    1024kB time=00:00:06.87 bitrate=122frame=  166 fps= 23 q=29.0 size=    1024kB time=00:00:07.33 bitrate=114frame=  183 fps= 23 q=29.0 size=    1280kB time=00:00:08.19 bitrate=127frame=  203 fps= 24 q=29.0 size=    1280kB time=00:00:08.89 bitrate=117frame=  213 fps= 24 q=29.0 size=    1536kB time=00:00:09.21 bitrate=136frame=  224 fps= 24 q=29.0 size=    1792kB time=00:00:09.54 bitrate=153frame=  240 fps= 24 q=26.0 size=    2304kB time=00:00:10.10 bitrate=186frame=  265 fps= 25 q=29.0 size=    2560kB time=00:00:10.93 bitrate=191frame=  285 fps= 26 q=29.0 size=    2560kB time=00:00:11.60 bitrate=180frame=  302 fps= 26 q=29.0 size=    2560kB time=00:00:12.23 bitrate=171frame=  312 fps= 26 q=29.0 size=    2560kB time=00:00:13.16 bitrate=159frame=  312 fps= 25 q=29.0 size=    2560kB time=00:00:14.60 bitrate=143frame=  312 fps= 24 q=29.0 size=    2560kB time=00:00:15.99 bitrate=131frame=  312 fps= 23 q=29.0 size=    2560kB time=00:00:16.99 bitrate=123frame=  312 fps= 22 q=29.0 size=    2560kB time=00:00:17.80 bitrate=117frame=  312 fps= 21 q=29.0 size=    2560kB time=00:00:18.97 bitrate=110frame=  312 fps= 21 q=29.0 size=    2560kB time=00:00:19.80 bitrate=105frame=  312 fps= 20 q=29.0 size=    2560kB time=00:00:20.64 bitrate=101frame=  312 fps= 19 q=29.0 size=    2560kB time=00:00:21.38 bitrate= 98frame=  312 fps= 19 q=29.0 size=    2560kB time=00:00:22.22 bitrate= 94frame=  312 fps= 18 q=29.0 size=    2560kB time=00:00:23.01 bitrate= 91frame=  312 fps= 18 q=29.0 size=    2816kB time=00:00:23.59 bitrate= 97frame=  312 fps= 17 q=29.0 size=    2816kB time=00:00:23.93 bitrate= 96frame=  312 fps= 16 q=29.0 size=    2816kB time=00:00:24.63 bitrate= 93frame=  312 fps= 16 q=29.0 size=    2816kB time=00:00:25.47 bitrate= 90frame=  312 fps= 15 q=29.0 size=    2816kB time=00:00:26.49 bitrate= 87frame=  312 fps= 15 q=29.0 size=    2816kB time=00:00:26.91 bitrate= 85frame=  312 fps= 15 q=29.0 size=    2816kB time=00:00:27.35 bitrate= 84frame=  312 fps= 14 q=29.0 size=    2816kB time=00:00:28.04 bitrate= 82frame=  312 fps= 14 q=29.0 size=    2816kB time=00:00:28.67 bitrate= 80frame=  312 fps= 14 q=29.0 size=    2816kB time=00:00:29.28 bitrate= 78frame=  312 fps= 13 q=29.0 size=    2816kB time=00:00:30.16 bitrate= 76frame=  312 fps= 13 q=29.0 size=    2816kB time=00:00:30.78 bitrate= 74frame=  312 fps= 13 q=29.0 size=    2816kB time=00:00:30.99 bitrate= 74frame=  312 fps= 13 q=29.0 size=    2816kB time=00:00:31.37 bitrate= 73frame=  312 fps= 12 q=29.0 size=    2816kB time=00:00:31.83 bitrate= 72frame=  312 fps= 12 q=29.0 size=    2816kB time=00:00:32.64 bitrate= 70frame=  312 fps= 12 q=29.0 size=    2816kB time=00:00:33.50 bitrate= 68frame=  312 fps= 12 q=29.0 size=    2816kB time=00:00:34.45 bitrate= 66frame=  312 fps= 11 q=29.0 size=    2816kB time=00:00:35.54 bitrate= 64frame=  312 fps= 11 q=29.0 size=    2816kB time=00:00:36.52 bitrate= 63frame=  312 fps= 11 q=29.0 size=    2816kB time=00:00:37.36 bitrate= 61frame=  312 fps= 11 q=29.0 size=    2816kB time=00:00:38.28 bitrate= 60frame=  312 fps= 11 q=29.0 size=    2816kB time=00:00:38.75 bitrate= 59frame=  312 fps= 10 q=29.0 size=    2816kB time=00:00:39.17 bitrate= 58frame=  312 fps= 10 q=29.0 size=    2816kB time=00:00:39.31 bitrate= 58frame=  312 fps= 10 q=29.0 size=    2816kB time=00:00:39.56 bitrate= 58frame=  312 fps=9.9 q=29.0 size=    2816kB time=00:00:39.96 bitrate= 57frame=  312 fps=9.7 q=29.0 size=    2816kB time=00:00:40.56 bitrate= 56frame=  312 fps=9.6 q=29.0 size=    2816kB time=00:00:41.70 bitrate= 55frame=  312 fps=9.4 q=29.0 size=    2816kB time=00:00:42.60 bitrate= 54frame=  312 fps=9.3 q=29.0 size=    2816kB time=00:00:42.98 bitrate= 53frame=  312 fps=9.1 q=29.0 size=    2816kB time=00:00:43.39 bitrate= 53frame=  312 fps=9.0 q=29.0 size=    2816kB time=00:00:43.67 bitrate= 52frame=  312 fps=8.9 q=29.0 size=    2816kB time=00:00:43.74 bitrate= 52frame=  312 fps=8.7 q=29.0 size=    2816kB time=00:00:43.90 bitrate= 52frame=  312 fps=8.5 q=29.0 size=    2816kB time=00:00:44.09 bitrate= 52frame=  312 fps=8.4 q=29.0 size=    2816kB time=00:00:44.79 bitrate= 51frame=  312 fps=8.3 q=29.0 size=    2816kB time=00:00:44.93 bitrate= 51frame=  312 fps=8.1 q=29.0 size=    2816kB time=00:00:45.11 bitrate= 51frame=  312 fps=8.0 q=29.0 size=    2816kB time=00:00:45.32 bitrate= 50frame=  312 fps=7.9 q=29.0 size=    2816kB time=00:00:45.72 bitrate= 50frame=  312 fps=7.8 q=29.0 size=    2816kB time=00:00:45.90 bitrate= 50frame=  312 fps=7.7 q=29.0 size=    2816kB time=00:00:46.20 bitrate= 49frame=  312 fps=7.6 q=29.0 size=    2816kB time=00:00:46.32 bitrate= 49frame=  312 fps=7.5 q=29.0 size=    2816kB time=00:00:46.57 bitrate= 49frame=  312 fps=7.4 q=29.0 size=    2816kB time=00:00:46.67 bitrate= 49frame=  312 fps=7.3 q=29.0 size=    2816kB time=00:00:46.83 bitrate= 49frame=  312 fps=7.2 q=29.0 size=    2816kB time=00:00:47.13 bitrate= 48frame=  312 fps=7.1 q=29.0 size=    2816kB time=00:00:47.60 bitrate= 48frame=  312 fps=7.0 q=29.0 size=    2816kB time=00:00:48.29 bitrate= 47frame=  312 fps=7.0 q=29.0 size=    2816kB time=00:00:48.76 bitrate= 47frame=  312 fps=6.9 q=29.0 size=    2816kB time=00:00:49.11 bitrate= 46frame=  312 fps=6.8 q=29.0 size=    2816kB time=00:00:49.31 bitrate= 46frame=  312 fps=6.7 q=29.0 size=    2816kB time=00:00:49.83 bitrate= 46frame=  312 fps=6.6 q=29.0 size=    2816kB time=00:00:50.34 bitrate= 45frame=  312 fps=6.6 q=29.0 size=    2816kB time=00:00:50.45 bitrate= 45frame=  312 fps=6.5 q=29.0 size=    2816kB time=00:00:50.96 bitrate= 45frame=  312 fps=6.4 q=29.0 size=    2816kB time=00:00:51.40 bitrate= 44frame=  312 fps=6.3 q=29.0 size=    2816kB time=00:00:52.03 bitrate= 44frame=  312 fps=6.3 q=29.0 size=    2816kB time=00:00:52.63 bitrate= 43frame=  314 fps=6.2 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  317 fps=6.2 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  318 fps=6.1 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  320 fps=6.1 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  323 fps=6.1 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  325 fps=6.0 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  327 fps=6.0 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  329 fps=6.0 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  333 fps=6.0 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  335 fps=6.0 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  337 fps=5.9 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  341 fps=5.9 q=29.0 size=    2816kB time=00:00:53.03 bitrate= 43frame=  346 fps=6.0 q=29.0 size=    3072kB time=00:00:53.03 bitrate= 47frame=  350 fps=6.0 q=29.0 size=    3072kB time=00:00:53.03 bitrate= 47frame=  354 fps=6.0 q=29.0 size=    3072kB time=00:00:53.03 bitrate= 47frame=  358 fps=6.0 q=29.0 size=    3072kB time=00:00:53.03 bitrate= 47frame=  360 fps=5.9 q=29.0 size=    3072kB time=00:00:53.03 bitrate= 47frame=  363 fps=5.9 q=29.0 size=    3328kB time=00:00:53.03 bitrate= 51frame=  369 fps=6.0 q=29.0 size=    3328kB time=00:00:53.03 bitrate= 51frame=  375 fps=6.0 q=29.0 size=    3328kB time=00:00:53.03 bitrate= 51frame=  385 fps=6.1 q=29.0 size=    3328kB time=00:00:53.03 bitrate= 51frame=  395 fps=6.2 q=29.0 size=    3328kB time=00:00:53.03 bitrate= 51frame=  403 fps=6.3 q=29.0 size=    3328kB time=00:00:53.03 bitrate= 51frame=  411 fps=6.4 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  420 fps=6.4 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  433 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  439 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  443 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  445 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  450 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  455 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  459 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  466 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  468 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  474 fps=6.6 q=29.0 size=    3584kB time=00:00:53.03 bitrate= 55frame=  480 fps=6.7 q=29.0 size=    3840kB time=00:00:53.03 bitrate= 59frame=  491 fps=6.8 q=29.0 size=    3840kB time=00:00:53.03 bitrate= 59frame=  503 fps=6.9 q=29.0 size=    3840kB time=00:00:53.03 bitrate= 59frame=  513 fps=7.0 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  527 fps=7.1 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  540 fps=7.2 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  553 fps=7.3 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  561 fps=7.4 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  574 fps=7.5 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  581 fps=7.6 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  593 fps=7.7 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  599 fps=7.7 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  605 fps=7.7 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  617 fps=7.8 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  634 fps=8.0 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  644 fps=8.0 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  653 fps=8.1 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  660 fps=8.1 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  668 fps=8.2 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  670 fps=8.2 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  675 fps=8.2 q=29.0 size=    4096kB time=00:00:53.03 bitrate= 63frame=  684 fps=8.2 q=29.0 size=    4352kB time=00:00:53.03 bitrate= 67frame=  689 fps=8.2 q=29.0 size=    4352kB time=00:00:53.03 bitrate= 67frame=  696 fps=8.3 q=29.0 size=    4352kB time=00:00:53.03 bitrate= 67frame=  710 fps=8.4 q=29.0 size=    4352kB time=00:00:53.03 bitrate= 67frame=  718 fps=8.4 q=29.0 size=    4352kB time=00:00:53.03 bitrate= 67frame=  729 fps=8.5 q=29.0 size=    4608kB time=00:00:53.03 bitrate= 71frame=  739 fps=8.6 q=26.0 size=    4608kB time=00:00:53.03 bitrate= 71frame=  751 fps=8.6 q=29.0 size=    4608kB time=00:00:53.03 bitrate= 71frame=  765 fps=8.7 q=29.0 size=    4864kB time=00:00:53.03 bitrate= 75frame=  777 fps=8.8 q=29.0 size=    4864kB time=00:00:53.03 bitrate= 75frame=  792 fps=9.0 q=29.0 size=    4864kB time=00:00:53.03 bitrate= 75frame=  804 fps=9.0 q=29.0 size=    5120kB time=00:00:53.03 bitrate= 79frame=  814 fps=9.1 q=29.0 size=    5120kB time=00:00:53.03 bitrate= 79frame=  826 fps=9.2 q=29.0 size=    5120kB time=00:00:53.03 bitrate= 79frame=  836 fps=9.2 q=29.0 size=    5120kB time=00:00:53.03 bitrate= 79frame=  845 fps=9.3 q=29.0 size=    5376kB time=00:00:53.03 bitrate= 83frame=  856 fps=9.3 q=29.0 size=    5376kB time=00:00:53.03 bitrate= 83frame=  866 fps=9.4 q=29.0 size=    5376kB time=00:00:53.03 bitrate= 83frame=  871 fps=9.4 q=29.0 size=    5376kB time=00:00:53.03 bitrate= 83frame=  874 fps=9.3 q=29.0 size=    5376kB time=00:00:53.03 bitrate= 83frame=  881 fps=9.4 q=29.0 size=    5376kB time=00:00:53.03 bitrate= 83frame=  891 fps=9.4 q=29.0 size=    5632kB time=00:00:53.03 bitrate= 87frame=  900 fps=9.4 q=29.0 size=    5632kB time=00:00:53.03 bitrate= 87frame=  916 fps=9.6 q=29.0 size=    5632kB time=00:00:53.03 bitrate= 87frame=  936 fps=9.7 q=29.0 size=    5888kB time=00:00:53.03 bitrate= 90frame=  954 fps=9.9 q=29.0 size=    5888kB time=00:00:53.03 bitrate= 90frame=  972 fps= 10 q=29.0 size=    5888kB time=00:00:53.03 bitrate= 90frame=  989 fps= 10 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame=  998 fps= 10 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1009 fps= 10 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1023 fps= 10 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1041 fps= 10 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1061 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1090 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1105 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1111 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1116 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1125 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1136 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1146 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1154 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1162 fps= 11 q=29.0 size=    6144kB time=00:00:53.03 bitrate= 94frame= 1173 fps= 11 q=29.0 size=    6400kB time=00:00:53.03 bitrate= 98frame= 1180 fps= 11 q=29.0 size=    6400kB time=00:00:53.03 bitrate= 98frame= 1188 fps= 11 q=29.0 size=    6656kB time=00:00:53.03 bitrate=102frame= 1195 fps= 11 q=29.0 size=    6656kB time=00:00:53.03 bitrate=102frame= 1203 fps= 11 q=29.0 size=    6656kB time=00:00:53.03 bitrate=102frame= 1219 fps= 11 q=29.0 size=    6912kB time=00:00:53.03 bitrate=106frame= 1231 fps= 11 q=29.0 size=    6912kB time=00:00:53.03 bitrate=106frame= 1243 fps= 11 q=29.0 size=    6912kB time=00:00:53.03 bitrate=106frame= 1247 fps= 11 q=29.0 size=    6912kB time=00:00:53.03 bitrate=106frame= 1255 fps= 11 q=29.0 size=    7168kB time=00:00:53.03 bitrate=110frame= 1262 fps= 11 q=29.0 size=    7168kB time=00:00:53.03 bitrate=110frame= 1269 fps= 11 q=29.0 size=    7168kB time=00:00:53.03 bitrate=110frame= 1281 fps= 11 q=29.0 size=    7168kB time=00:00:53.03 bitrate=110frame= 1293 fps= 11 q=29.0 size=    7424kB time=00:00:53.03 bitrate=114frame= 1307 fps= 12 q=29.0 size=    7424kB time=00:00:53.03 bitrate=114frame= 1318 fps= 12 q=29.0 size=    7424kB time=00:00:53.03 bitrate=114frame= 1323 fps= 12 q=29.0 size=    7424kB time=00:00:53.03 bitrate=114frame= 1329 fps= 12 q=29.0 size=    7424kB time=00:00:53.03 bitrate=114frame= 1335 fps= 12 q=29.0 size=    7680kB time=00:00:53.03 bitrate=118frame= 1344 fps= 12 q=29.0 size=    7680kB time=00:00:53.03 bitrate=118frame= 1352 fps= 12 q=29.0 size=    7680kB time=00:00:53.03 bitrate=118frame= 1363 fps= 12 q=29.0 size=    7680kB time=00:00:53.03 bitrate=118frame= 1380 fps= 12 q=29.0 size=    7936kB time=00:00:53.03 bitrate=122frame= 1393 fps= 12 q=29.0 size=    7936kB time=00:00:53.03 bitrate=122frame= 1404 fps= 12 q=29.0 size=    8192kB time=00:00:53.03 bitrate=126frame= 1421 fps= 12 q=29.0 size=    8192kB time=00:00:53.03 bitrate=126frame= 1436 fps= 12 q=29.0 size=    8448kB time=00:00:53.03 bitrate=130frame= 1445 fps= 12 q=29.0 size=    8448kB time=00:00:53.03 bitrate=130frame= 1456 fps= 12 q=29.0 size=    8448kB time=00:00:53.03 bitrate=130frame= 1470 fps= 12 q=29.0 size=    8704kB time=00:00:53.03 bitrate=134frame= 1484 fps= 12 q=29.0 size=    8704kB time=00:00:53.03 bitrate=134frame= 1494 fps= 12 q=29.0 size=    8704kB time=00:00:53.03 bitrate=134frame= 1513 fps= 12 q=29.0 size=    8960kB time=00:00:53.03 bitrate=138frame= 1525 fps= 12 q=29.0 size=    8960kB time=00:00:53.03 bitrate=138frame= 1536 fps= 12 q=29.0 size=    8960kB time=00:00:53.03 bitrate=138[mp4 @ 0000021d9f70de40] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 0000021d9f709d00] video:9139kB audio:369kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.419749%
+frame= 1593 fps= 12 q=-1.0 Lsize=    9549kB time=00:00:53.10 bitrate=1473.0kbits/s speed=0.416x
+[libx264 @ 0000021d9ea24f80] frame I:7     Avg QP:15.60  size:106346
+[libx264 @ 0000021d9ea24f80] frame P:431   Avg QP:18.84  size: 13024
+[libx264 @ 0000021d9ea24f80] frame B:1155  Avg QP:23.28  size:  2598
+[libx264 @ 0000021d9ea24f80] consecutive B-frames:  1.5%  4.0%  4.3% 90.1%
+[libx264 @ 0000021d9ea24f80] mb I  I16..4: 27.3% 55.2% 17.5%
+[libx264 @ 0000021d9ea24f80] mb P  I16..4:  3.0%  4.8%  0.4%  P16..4: 23.8%  4.4%  2.7%  0.0%  0.0%    skip:60.8%
+[libx264 @ 0000021d9ea24f80] mb B  I16..4:  0.2%  0.1%  0.0%  B16..8: 22.7%  0.5%  0.0%  direct: 0.5%  skip:76.0%  L0:42.8% L1:53.5% BI: 3.7%
+[libx264 @ 0000021d9ea24f80] 8x8 transform intra:56.4% inter:86.7%
+[libx264 @ 0000021d9ea24f80] coded y,uvDC,uvAC intra: 19.3% 27.8% 11.9% inter: 3.2% 4.9% 0.4%
+[libx264 @ 0000021d9ea24f80] i16 v,h,dc,p: 31% 57%  5%  7%
+[libx264 @ 0000021d9ea24f80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 26% 21% 39%  2%  3%  2%  4%  1%  2%
+[libx264 @ 0000021d9ea24f80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 29% 29% 16%  3%  6%  4%  6%  3%  4%
+[libx264 @ 0000021d9ea24f80] i8c dc,h,v,p: 72% 17%  9%  2%
+[libx264 @ 0000021d9ea24f80] Weighted P-Frames: Y:17.2% UV:17.2%
+[libx264 @ 0000021d9ea24f80] ref P L0: 65.5%  9.3% 18.7%  6.3%  0.1%
+[libx264 @ 0000021d9ea24f80] ref B L0: 85.2% 12.6%  2.2%
+[libx264 @ 0000021d9ea24f80] ref B L1: 93.4%  6.6%
+[libx264 @ 0000021d9ea24f80] kb/s:1409.89
+[aac @ 0000021d9ea25780] Qavg: 15852.159
+✅✅ SUCCESS! Final video merged to: C:\Users\Temitope\Documents\GitHub\vivid-launch\worker\tmp\final_output.mp4
+⏳ Uploading final video for project context: rendered_videos/lcipoPomI5Efg8CHUvwK
+☁️  Uploaded to gs://vividlaunch-assets/rendered_videos/lcipoPomI5Efg8CHUvwK/final_output.mp4
+ POST /api/studio/render 200 in 5.5min (compile: 323ms, render: 5.4min)
+ PATCH /api/projects/lcipoPomI5Efg8CHUvwK 200 in 2.1s (compile: 416ms, render: 1673ms)

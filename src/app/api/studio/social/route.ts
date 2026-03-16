@@ -6,6 +6,7 @@ import {
     getProjectAssetsDeclaration, getProjectAssets,
     scrapeWebsiteDeclaration, scrapeWebsite
 } from '@/lib/agents/tools';
+import { db, COLLECTIONS } from '@/lib/gcp/firestore';
 
 export const maxDuration = 60; // Allow enough time for campaign generation
 
@@ -16,7 +17,6 @@ const PLATFORMS = {
     twitter: { name: 'X (Twitter)', limit: 280, dna: 'Punchy, viral, use 1-2 hashtags, max 280 chars. Focus on hooks and engagement.' },
     linkedin: { name: 'LinkedIn', limit: 3000, dna: 'Professional, thought-leadership, industry-specific, structured with bullet points. Longer form allowed.' },
     instagram: { name: 'Instagram', limit: 2200, dna: 'Visual-first caption, emoji-rich, conversational, call-to-action at the end.' },
-    tiktok: { name: 'TikTok', limit: 150, dna: 'Gen-Z hype, trending language, very short hook, focusing on the visual hook.' },
     facebook: { name: 'Facebook', limit: 63206, dna: 'Community-focused, engaging, uses many emojis, call-to-action (Share/Comment).' },
     reddit: { name: 'Reddit', limit: 40000, dna: 'Authentic, no-fluff, value-first, subreddit-specific tone. Avoid obvious marketing speak.' }
 };
@@ -24,30 +24,127 @@ const PLATFORMS = {
 export async function POST(req: Request) {
     try {
         const { projectId, platform, platforms, mode, prompt: userPrompt } = await req.json();
+        console.log(`[Social API] POST Request received`, { projectId, mode, platform, platforms });
 
-        if (!projectId) return new Response('Missing projectId', { status: 400 });
+        if (!projectId) {
+            console.error('[Social API] Missing projectId');
+            return new Response('Missing projectId', { status: 400 });
+        }
+
+        console.log(`[Social API] Fetching context for ${projectId}`);
+        const projectContext: any = await getProjectContext(projectId);
+        const projectAssets: any = await getProjectAssets(projectId);
+        
+        let scrapedContent = "";
+        if (projectContext && !projectContext.error && projectContext.websiteUrl) {
+            const scrape: any = await scrapeWebsite(projectContext.websiteUrl, projectContext.scraperSettings?.scope, projectContext.scraperSettings?.depth);
+            if (scrape && !scrape.error) {
+                scrapedContent = `\nScraped Website Content (Reference):\n${scrape.scrapedText}`;
+            }
+        }
+
+        const projectDataString = `PROJECT CONTEXT:
+Name: ${projectContext?.name || ''}
+Tagline: ${projectContext?.tagline || ''}
+Description: ${projectContext?.description || ''}
+Target Audience: ${Array.isArray(projectContext?.targetAudience) ? projectContext.targetAudience.join(', ') : projectContext?.targetAudience || ''}
+Voice Guidelines: ${JSON.stringify(projectContext?.brandVoice || {})}
+
+AVAILABLE ASSETS:
+${JSON.stringify(projectAssets || {})}
+${scrapedContent}
+`;
 
         // Base System Prompt for all social tasks
         const baseSystem = `You are the Social Media Director at VividLaunch. 
         Your goal is to generate high-converting social media content for the project provided.
         You must strictly adhere to platform character limits and "DNA" (tone/style).
         Always suggest 1-3 relevant hashtags unless specified otherwise.
-        Use the available tools to understand the project's brand voice, audience, and assets.`;
+        
+        CRITICAL: DO NOT repeat the prompt in your output. Return ONLY the content of the post. No conversational filler, no repetition of my instructions.
+        
+        ${projectDataString}`;
 
-        // --- Mode 1: Single Post ---
         if (mode === 'single' && platform) {
             const platformConfig = PLATFORMS[platform as keyof typeof PLATFORMS];
-            if (!platformConfig) return new Response('Invalid platform', { status: 400 });
+            if (!platformConfig) {
+                console.error(`[Social API] Invalid platform: ${platform}`);
+                return new Response('Invalid platform', { status: 400 });
+            }
+
+            console.log(`[Social API] Mode: Single. Model: gemini-3-flash-preview. Platform: ${platformConfig.name}`);
 
             const result = await streamText({
-                model: google('gemini-3-flash-preview'),
-                system: `${baseSystem}\n\nPlatform: ${platformConfig.name}\nDNA: ${platformConfig.dna}\nLimit: ${platformConfig.limit} characters.\n\nGenerate a single post.`,
+                model: google('gemini-3.1-pro-preview'),
+                system: `${baseSystem}\n\nPlatform: ${platformConfig.name}\nDNA: ${platformConfig.dna}\nLimit: ${platformConfig.limit} characters.\n\nGenerate a single post. Return ONLY the post content.`,
                 prompt: userPrompt || "Generate a post about this project.",
-                tools: {
-                    get_project_context: getProjectContextDeclaration as any,
-                    get_project_assets: getProjectAssetsDeclaration as any,
-                    scrape_website: scrapeWebsiteDeclaration as any,
+                onFinish: async ({ text }) => {
+                    console.log(`[Social API] Single post stream finished. Content length: ${text?.length}`);
+                    try {
+                        const doc = await db.collection('socials').add({
+                            projectId,
+                            platform,
+                            content: text,
+                            createdAt: new Date().toISOString(),
+                            type: 'single'
+                        });
+                        console.log(`[Social API] Single post saved to Firestore: ${doc.id}`);
+                    } catch (fsErr) {
+                        console.error('[Social API] Firestore save error:', fsErr);
+                    }
                 },
+            });
+
+            return result.toTextStreamResponse();
+        }
+
+        if (mode === 'variant' && platform) {
+            const platformConfig = PLATFORMS[platform as keyof typeof PLATFORMS];
+            console.log(`[Social API] Mode: Variant. Platform: ${platformConfig?.name}`);
+
+            const result = await streamObject({
+                model: google('gemini-3.1-pro-preview'),
+                schema: z.object({
+                    variantA: z.object({
+                        content: z.string(),
+                        strategy: z.string()
+                    }),
+                    variantB: z.object({
+                        content: z.string(),
+                        strategy: z.string()
+                    })
+                }),
+                system: `${baseSystem}\n\nYou are generating TWO DISTINCT A/B VARIANTS for ${platformConfig?.name}.
+                Variant A: Emotional, story-driven, human-centric.
+                Variant B: Logical, benefit-driven, feature-centric.
+                Return BOTH variants.`,
+                prompt: userPrompt || "Generate dual creative directions for this project.",
+                onFinish: async ({ object }) => {
+                    if (object) {
+                        try {
+                            const batch = db.batch();
+                            const variants = [
+                                { label: 'A', ...object.variantA },
+                                { label: 'B', ...object.variantB }
+                            ];
+                            variants.forEach(v => {
+                                const ref = db.collection('socials').doc();
+                                batch.set(ref, {
+                                    projectId,
+                                    platform,
+                                    content: v.content,
+                                    strategy: v.strategy,
+                                    variantLabel: v.label,
+                                    createdAt: new Date().toISOString(),
+                                    type: 'variant'
+                                });
+                            });
+                            await batch.commit();
+                        } catch (err) {
+                            console.error('[Social API] Variant save error:', err);
+                        }
+                    }
+                }
             });
 
             return result.toTextStreamResponse();
@@ -56,9 +153,10 @@ export async function POST(req: Request) {
         // --- Mode 2: Content Pack ---
         if (mode === 'pack') {
             const targetPlatforms = platforms || ['twitter', 'linkedin', 'instagram', 'tiktok'];
+            console.log(`[Social API] Mode: Pack. Model: gemini-3-flash-preview. Target Platforms: ${targetPlatforms.join(', ')}`);
             
             const result = await streamObject({
-                model: google('gemini-3-flash-preview'),
+                model: google('gemini-3.1-pro-preview'),
                 schema: z.object({
                     posts: z.array(z.object({
                         platform: z.string(),
@@ -71,6 +169,28 @@ export async function POST(req: Request) {
                 Generate one post for each of these platforms: ${targetPlatforms.join(', ')}.
                 Ensure each post is uniquely tailored to that platform's DNA and character limits.`,
                 prompt: userPrompt || "Generate a launch announcement pack for this project.",
+                onFinish: async ({ object }) => {
+                    if (object?.posts) {
+                        try {
+                            const batch = db.batch();
+                            object.posts.forEach(post => {
+                                const ref = db.collection('socials').doc();
+                                batch.set(ref, {
+                                    projectId,
+                                    platform: post.platform,
+                                    content: post.content,
+                                    hashtags: post.hashtags,
+                                    createdAt: new Date().toISOString(),
+                                    type: 'pack'
+                                });
+                            });
+                            await batch.commit();
+                            console.log(`[Social API] Content pack batch saved to Firestore.`);
+                        } catch (fsErr) {
+                            console.error('[Social API] Firestore batch save error:', fsErr);
+                        }
+                    }
+                },
             });
 
             return result.toTextStreamResponse();
@@ -79,7 +199,7 @@ export async function POST(req: Request) {
         // --- Mode 3: Launch Campaign ---
         if (mode === 'campaign') {
             const result = await streamObject({
-                model: google('gemini-3-flash-preview'),
+                model: google('gemini-3.1-pro-preview'),
                 schema: z.object({
                     campaignName: z.string(),
                     strategy: z.string(),

@@ -33,4 +33,5 @@ export const COLLECTIONS = {
     CAMPAIGNS: "campaigns",
     OWNERS: "owners",
     USAGE_LOGS: "usageLogs",
+    SOCIALS: "socials",
 };

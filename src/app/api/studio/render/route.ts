@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
         // Write scenes to a temporary JSON payload file
         const payloadPath = path.join(os.tmpdir(), `vl_render_${projectId}_${Date.now()}.json`);
-        fs.writeFileSync(payloadPath, JSON.stringify({ scenes, aspectRatio }, null, 2));
+        fs.writeFileSync(payloadPath, JSON.stringify({ projectId, scenes, aspectRatio }, null, 2));
 
         console.log(`[Render API] Dispatching worker for project ${projectId}`);
         console.log(`[Render API] Payload: ${payloadPath}`);
